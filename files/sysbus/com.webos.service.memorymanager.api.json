@@ -1,0 +1,17 @@
+{
+    "intent.manager": [
+        "com.webos.service.intent/resolve",
+        "com.webos.service.intent/getHandler",
+        "com.webos.service.intent/setHandler",
+        "com.webos.service.intent/registerHandler",
+        "com.webos.service.intent/unregisterHandler"
+    ],
+    "intent.handler": [
+        "com.webos.service.intent/finish",
+        "com.webos.service.intent/registerHandler",
+        "com.webos.service.intent/unregisterHandler"
+    ],
+    "intent.requester": [
+        "com.webos.service.intent/launch"
+    ]
+}

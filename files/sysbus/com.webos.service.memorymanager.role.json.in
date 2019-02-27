@@ -1,0 +1,13 @@
+{
+    "exeName":"@WEBOS_INSTALL_SBINDIR@/com.webos.service.intent",
+    "type": "regular",
+    "allowedNames": ["com.webos.service.intent"],
+    "permissions": [
+        {
+            "service":"com.webos.service.intent",
+            "outbound": [
+                "com.webos.service.applicationmanager"
+            ]
+        }
+    ]
+}
