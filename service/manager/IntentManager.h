@@ -16,11 +16,16 @@
 
 #include <iostream>
 
+#include <luna-service2/lunaservice.hpp>
+#include <pbnjson.hpp>
+
 #include "interface/IManageable.h"
 
 using namespace std;
+using namespace LS;
+using namespace pbnjson;
 
-class IntentManager : public IManageable<IntentManager> {
+class IntentManager : public Handle, public IManageable<IntentManager> {
 friend class IManageable<IntentManager>;
 public:
     virtual ~IntentManager();
@@ -28,8 +33,20 @@ public:
     virtual bool onInitialization() override;
     virtual bool onFInalization() override;
 
+    bool launch(LSMessage &message);
+    bool finish(LSMessage &message);
+    bool resolve(LSMessage &message);
+    bool getHandler(LSMessage &message);
+    bool setHandler(LSMessage &message);
+    bool registerHandler(LSMessage &message);
+    bool unregisterHandler(LSMessage &message);
+
 private:
+    static const string NAME;
     IntentManager();
+
+    void pre(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void post(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
 };
 
 #endif /* MANAGER_INTENTMANAGER_H_ */

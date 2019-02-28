@@ -15,6 +15,16 @@
 
 #include <string.h>
 
+void Logger::append(string& msg, string log)
+{
+    msg += "[" + log + "]";
+}
+
+void Logger::prepend(string& msg, string log)
+{
+    msg = "[" + log + "]" + msg;
+}
+
 void Logger::verbose(string msg, string name)
 {
     getInstance().write(msg, name, LogLevel_VERBOSE);
@@ -92,11 +102,12 @@ void Logger::write(string& msg, string& name, enum LogLevel level)
     if (level < m_level)
         return;
 
-    string log = "[" + convertLevel(level) + "][" + (name.empty() ? "UNKNOWN" : name)  + "] " + msg;
+    Logger::prepend(msg, (name.empty() ? "UNKNOWN" : name));
+    Logger::prepend(msg, convertLevel(level));
 
     switch (m_type) {
     case LogType_CONSOLE:
-        writeConsole(log, level);
+        writeConsole(msg, level);
         break;
 
     default:

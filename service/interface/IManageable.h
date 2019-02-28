@@ -36,6 +36,7 @@ public:
     {
         bool result;
         Logger::getInstance().normal("initialize starts", m_name);
+        m_mainloop = mainloop;
         result = onInitialization();
         Logger::getInstance().normal("initialize ends", m_name);
         return result;
@@ -55,7 +56,8 @@ public:
 
 protected:
     IManageable()
-        : m_name("")
+        : m_mainloop(nullptr)
+        , m_name("")
     {
     };
 
@@ -68,6 +70,8 @@ protected:
     {
         m_name = name;
     }
+
+    GMainLoop* m_mainloop;
 
 private:
     string m_name;

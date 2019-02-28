@@ -35,6 +35,9 @@ enum LogType {
 
 class Logger {
 public:
+    static void append(string& msg, string log);
+    static void prepend(string& msg, string log);
+
     static void verbose(string msg, string name = "");
     static void debug(string msg, string name = "");
     static void normal(string msg, string name = "");
