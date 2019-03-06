@@ -25,12 +25,46 @@ public:
     Intent();
     virtual ~Intent();
 
+    virtual bool fromJson(JValue& json) override;
+    virtual bool toJson(JValue& json) override;
+    virtual void printDebug() override;
+
+    const string& getRequester()
+    {
+        return m_requester;
+    }
+
+    const string& getAction()
+    {
+        return m_action;
+    }
+
+    const string& getUri()
+    {
+        return m_uri;
+    }
+
+    const string& getMimeType()
+    {
+        return m_mimeType;
+    }
+
+    const JValue& getExtra()
+    {
+        return m_extra;
+    }
+
+    const string& getResult()
+    {
+        return m_result;
+    }
+
 private:
     string m_requester;
     string m_action;
     string m_uri;
     string m_mimeType;
-    string m_extra;
+    JValue m_extra;
     string m_result;
 };
 

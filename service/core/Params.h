@@ -25,11 +25,35 @@ public:
     Params();
     virtual ~Params();
 
+    virtual bool fromJson(JValue& json) override;
+    virtual bool toJson(JValue& json) override;
+    virtual void printDebug() override;
+
+    const string& getRequster()
+    {
+        return m_requester;
+    }
+
+    const string& getAction()
+    {
+        return m_action;
+    }
+
+    const string& getUri()
+    {
+        return m_uri;
+    }
+
+    const JValue& getExtra()
+    {
+        return m_extra;
+    }
+
 private:
     string m_requester;
     string m_action;
     string m_uri;
-    string m_extra;
+    JValue m_extra;
 };
 
 #endif /* CORE_PARAMS_H_ */

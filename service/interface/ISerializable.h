@@ -23,8 +23,9 @@ public:
     ISerializable() {};
     virtual ~ISerializable() {};
 
-    virtual bool fromJson(JValue& data) = 0;
-    virtual bool toJson(JValue& data) = 0;
+    virtual bool fromJson(JValue& json) = 0;
+    virtual bool toJson(JValue& json) = 0;
+    virtual void printDebug() = 0;
 
 };
 

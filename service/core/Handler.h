@@ -15,7 +15,7 @@
 #define CORE_HANDLER_H_
 
 #include <iostream>
-#include <queue>
+#include <deque>
 
 #include "interface/ISerializable.h"
 
@@ -32,13 +32,44 @@ public:
     Handler();
     virtual ~Handler();
 
+    virtual bool fromJson(JValue& json) override;
+    virtual bool toJson(JValue& json) override;
+    virtual void printDebug() override;
+
+    const string& getId()
+    {
+        return m_id;
+    }
+
+    const int getPriority()
+    {
+        return m_priority;
+    }
+
+    const deque<string>& getActions()
+    {
+        return m_actions;
+    }
+
+    const deque<string>& getMimeTypes()
+    {
+        return m_mimeTypes;
+    }
+
+    const deque<string>& getUris()
+    {
+        return m_uris;
+    }
+
 private:
     string m_id;
-    enum HandlerType m_type;
+    int m_priority;
 
-    queue<string> m_actions;
-    queue<string> m_mimeTypes;
-    queue<string> m_uris;
+    deque<string> m_actions;
+    deque<string> m_mimeTypes;
+    deque<string> m_uris;
+
+    enum HandlerType m_type;
 };
 
 #endif /* CORE_HANDLER_H_ */

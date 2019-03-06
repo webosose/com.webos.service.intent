@@ -12,6 +12,9 @@
  */
 
 #include "IntentManager.h"
+
+#include "core/Intent.h"
+#include "core/Handler.h"
 #include "util/Logger.h"
 
 const string IntentManager::NAME = "com.webos.service.intent";
@@ -52,8 +55,25 @@ bool IntentManager::launch(LSMessage &message)
 {
     LS::Message request(&message);
     JValue requestPayload, responsePayload;
+    Intent intent;
 
     pre(request, requestPayload, responsePayload);
+    if (intent.fromJson(requestPayload) == false) {
+        responsePayload.put("errorText", "Invalid parameter");
+        goto Done;
+    }
+    if (intent.getAction().empty()) {
+        responsePayload.put("errorText", "'action' is required parameter");
+        goto Done;
+    }
+    if (intent.getUri().empty()) {
+        responsePayload.put("errorText", "'uri' is required parameter");
+        goto Done;
+    }
+
+    intent.printDebug();
+
+Done:
     post(request, requestPayload, responsePayload);
     return true;
 }
@@ -62,8 +82,21 @@ bool IntentManager::finish(LSMessage &message)
 {
     LS::Message request(&message);
     JValue requestPayload, responsePayload;
+    Intent intent;
 
     pre(request, requestPayload, responsePayload);
+    if (intent.fromJson(requestPayload) == false) {
+        responsePayload.put("errorText", "Invalid parameter");
+        goto Done;
+    }
+    if (intent.getUri().empty()) {
+        responsePayload.put("errorText", "'uri' is required parameter");
+        goto Done;
+    }
+
+    intent.printDebug();
+
+Done:
     post(request, requestPayload, responsePayload);
     return true;
 }
@@ -72,8 +105,21 @@ bool IntentManager::resolve(LSMessage &message)
 {
     LS::Message request(&message);
     JValue requestPayload, responsePayload;
+    Intent intent;
 
     pre(request, requestPayload, responsePayload);
+    if (intent.fromJson(requestPayload) == false) {
+        responsePayload.put("errorText", "Invalid parameter");
+        goto Done;
+    }
+    if (intent.getUri().empty()) {
+        responsePayload.put("errorText", "'uri' is required parameter");
+        goto Done;
+    }
+
+    intent.printDebug();
+
+Done:
     post(request, requestPayload, responsePayload);
     return true;
 }
@@ -84,6 +130,7 @@ bool IntentManager::getHandler(LSMessage &message)
     JValue requestPayload, responsePayload;
 
     pre(request, requestPayload, responsePayload);
+Done:
     post(request, requestPayload, responsePayload);
     return true;
 }
@@ -92,8 +139,17 @@ bool IntentManager::setHandler(LSMessage &message)
 {
     LS::Message request(&message);
     JValue requestPayload, responsePayload;
+    Handler handler;
 
     pre(request, requestPayload, responsePayload);
+    if (handler.fromJson(requestPayload) == false) {
+        responsePayload.put("errorText", "Invalid parameter");
+        goto Done;
+    }
+
+    handler.printDebug();
+
+Done:
     post(request, requestPayload, responsePayload);
     return true;
 }
@@ -104,6 +160,7 @@ bool IntentManager::registerHandler(LSMessage &message)
     JValue requestPayload, responsePayload;
 
     pre(request, requestPayload, responsePayload);
+Done:
     post(request, requestPayload, responsePayload);
     return true;
 }
@@ -114,6 +171,7 @@ bool IntentManager::unregisterHandler(LSMessage &message)
     JValue requestPayload, responsePayload;
 
     pre(request, requestPayload, responsePayload);
+Done:
     post(request, requestPayload, responsePayload);
     return true;
 }

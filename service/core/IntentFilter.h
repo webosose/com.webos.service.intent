@@ -24,6 +24,11 @@ class IntentFilter : public ISerializable {
 public:
     IntentFilter();
     virtual ~IntentFilter();
+
+    virtual bool fromJson(JValue& json) override;
+    virtual bool toJson(JValue& json) override;
+    virtual void printDebug() override;
+
 };
 
 #endif /* CORE_INTENTFILTER_H_ */

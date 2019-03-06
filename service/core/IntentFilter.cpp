@@ -23,3 +23,17 @@ IntentFilter::~IntentFilter()
 
 }
 
+bool IntentFilter::fromJson(JValue& json)
+{
+    return true;
+}
+
+bool IntentFilter::toJson(JValue& json)
+{
+    return true;
+}
+
+void IntentFilter::printDebug()
+{
+
+}
