@@ -17,6 +17,8 @@
 #include <iostream>
 
 #include "interface/IManageable.h"
+#include "core/Handler.h"
+#include "core/Intent.h"
 
 using namespace std;
 
@@ -26,10 +28,21 @@ public:
     virtual ~HandlerManager();
 
     virtual bool onInitialization() override;
-    virtual bool onFInalization() override;
+    virtual bool onFinalization() override;
+
+    virtual JValue resolve(Intent intent);
+    virtual JValue getHandler(const string& id);
+    virtual bool setHandler(Handler& handler);
+    virtual bool registerHandler(Handler& handler);
+    virtual bool unregisterHandler(Handler& handler);
 
 private:
     HandlerManager();
+
+    virtual bool hasHandler(const string& id);
+    virtual deque<Handler>::iterator findHandler(const string& id);
+
+    deque<Handler> m_handlers;
 
 };
 

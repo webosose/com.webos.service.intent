@@ -14,6 +14,7 @@
 #include <iostream>
 #include <glib.h>
 
+#include "manager/ApplicationManager.h"
 #include "manager/HandlerManager.h"
 #include "manager/IntentManager.h"
 #include "manager/StorageManager.h"
@@ -36,15 +37,19 @@ int main()
 
     s_mainloop = g_main_loop_new(NULL, FALSE);
 
+    // xxx: DON'T change initialization order.
     HandlerManager::getInstance().initialize(s_mainloop);
     IntentManager::getInstance().initialize(s_mainloop);
     StorageManager::getInstance().initialize(s_mainloop);
+    ApplicationManager::getInstance().initialize(s_mainloop);
 
     g_main_loop_run(s_mainloop);
 
-    HandlerManager::getInstance().initialize(s_mainloop);
-    IntentManager::getInstance().initialize(s_mainloop);
-    StorageManager::getInstance().initialize(s_mainloop);
+    // xxx: DON'T change finalize order.
+    ApplicationManager::getInstance().finalize();
+    StorageManager::getInstance().finalize();
+    IntentManager::getInstance().finalize();
+    HandlerManager::getInstance().finalize();
 
     g_main_loop_unref(s_mainloop);
 

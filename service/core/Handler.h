@@ -18,6 +18,7 @@
 #include <deque>
 
 #include "interface/ISerializable.h"
+#include "core/Intent.h"
 
 using namespace std;
 
@@ -32,11 +33,19 @@ public:
     Handler();
     virtual ~Handler();
 
-    virtual bool fromJson(JValue& json) override;
+    virtual bool launch(Intent intent);
+    virtual bool isMatched(const Intent& intent);
+
+    virtual bool fromJson(const JValue& json) override;
     virtual bool toJson(JValue& json) override;
     virtual void printDebug() override;
 
-    const string& getId()
+    void setId(string id)
+    {
+        m_id = id;
+    }
+
+    const string& getId() const
     {
         return m_id;
     }

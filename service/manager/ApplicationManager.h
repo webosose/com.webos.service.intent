@@ -11,25 +11,36 @@
  * LICENSE@@@
  */
 
-#ifndef MANAGER_STORAGEMANAGER_H_
-#define MANAGER_STORAGEMANAGER_H_
+#ifndef MANAGER_APPLICATIONMANAGER_H_
+#define MANAGER_APPLICATIONMANAGER_H_
 
 #include <iostream>
+
+#include <luna-service2/lunaservice.hpp>
 
 #include "interface/IManageable.h"
 
 using namespace std;
 
-class StorageManager : public IManageable<StorageManager> {
-friend class IManageable<StorageManager>;
+class ApplicationManager : public IManageable<ApplicationManager> {
+friend class IManageable<ApplicationManager>;
 public:
-    virtual ~StorageManager();
+    ApplicationManager();
 
     virtual bool onInitialization() override;
     virtual bool onFinalization() override;
+    static bool onServerStatus(bool isConnected);
+
+    bool launch();
 
 private:
-    StorageManager();
+    virtual ~ApplicationManager();
+
+    static bool _listApps(LSHandle* sh, LSMessage* reply, void* ctx);
+    void listApps();
+
+    LS::ServerStatus m_serverStatus;
+    LS::Call m_listApps;
 };
 
-#endif /* MANAGER_STORAGEMANAGER_H_ */
+#endif /* MANAGER_APPLICATIONMANAGER_H_ */

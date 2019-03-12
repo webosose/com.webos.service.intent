@@ -15,24 +15,72 @@
 
 #include "core/Intent.h"
 #include "core/Handler.h"
+#include "manager/HandlerManager.h"
 #include "util/Logger.h"
 
 const string IntentManager::NAME = "com.webos.service.intent";
+const LSMethod IntentManager::METHODS[] = {
+    { "launch", IntentManager::onRequest , LUNA_METHOD_FLAGS_NONE },
+    { "finish", IntentManager::onRequest , LUNA_METHOD_FLAGS_NONE },
+    { "resolve", IntentManager::onRequest , LUNA_METHOD_FLAGS_NONE },
+    { "getHandler", IntentManager::onRequest , LUNA_METHOD_FLAGS_NONE },
+    { "setHandler", IntentManager::onRequest , LUNA_METHOD_FLAGS_NONE },
+    { "registerHandler", IntentManager::onRequest , LUNA_METHOD_FLAGS_NONE },
+    { "unregisterHandler", IntentManager::onRequest , LUNA_METHOD_FLAGS_NONE },
+    { 0, 0 , LUNA_METHOD_FLAGS_NONE }
+};
+
+bool IntentManager::onRequest(LSHandle *sh, LSMessage *msg, void *category_context)
+{
+    static bool pending = false;
+
+    // All LS2 requests are handled in queue
+    IntentManager::getInstance().m_requests.emplace(msg);
+
+    // Not allowed recursive request handling To avoid unexpected behavior
+    if (pending) {
+        return true;
+    }
+
+    JValue requestPayload, responsePayload;
+    pending = true;
+    while (IntentManager::getInstance().m_requests.size() != 0) {
+        // pop a request
+        LS::Message request = IntentManager::getInstance().m_requests.front();
+        IntentManager::getInstance().m_requests.pop();
+
+        // pre processing before request handling
+        pre(request, requestPayload, responsePayload);
+        string method = request.getMethod();
+
+        if (method == "launch") {
+            IntentManager::getInstance().launch(request, requestPayload, responsePayload);
+        } else if (method == "finish") {
+            IntentManager::getInstance().finish(request, requestPayload, responsePayload);
+        } else if (method == "resolve") {
+            IntentManager::getInstance().resolve(request, requestPayload, responsePayload);
+        } else if (method == "getHandler") {
+            IntentManager::getInstance().getHandler(request, requestPayload, responsePayload);
+        } else if (method == "setHandler") {
+            IntentManager::getInstance().setHandler(request, requestPayload, responsePayload);
+        } else if (method == "registerHandler") {
+            IntentManager::getInstance().registerHandler(request, requestPayload, responsePayload);
+        } else if (method == "unregisterHandler") {
+            IntentManager::getInstance().unregisterHandler(request, requestPayload, responsePayload);
+        } else {
+            responsePayload.put("errorText", "Please extend API handlers");
+        }
+        post(request, requestPayload, responsePayload);
+    }
+    pending = false;
+    return true;
+}
 
 IntentManager::IntentManager()
     : Handle(LS::registerService(NAME.c_str()))
 {
     setName(NAME);
-
-    LS_CATEGORY_BEGIN(IntentManager, "/")
-        LS_CATEGORY_METHOD(launch)
-        LS_CATEGORY_METHOD(finish)
-        LS_CATEGORY_METHOD(resolve)
-        LS_CATEGORY_METHOD(getHandler)
-        LS_CATEGORY_METHOD(setHandler)
-        LS_CATEGORY_METHOD(registerHandler)
-        LS_CATEGORY_METHOD(unregisterHandler)
-    LS_CATEGORY_END
+    this->registerCategory("/", METHODS, NULL, NULL);
 }
 
 IntentManager::~IntentManager()
@@ -45,134 +93,9 @@ bool IntentManager::onInitialization()
     return true;
 }
 
-bool IntentManager::onFInalization()
+bool IntentManager::onFinalization()
 {
     detach();
-    return true;
-}
-
-bool IntentManager::launch(LSMessage &message)
-{
-    LS::Message request(&message);
-    JValue requestPayload, responsePayload;
-    Intent intent;
-
-    pre(request, requestPayload, responsePayload);
-    if (intent.fromJson(requestPayload) == false) {
-        responsePayload.put("errorText", "Invalid parameter");
-        goto Done;
-    }
-    if (intent.getAction().empty()) {
-        responsePayload.put("errorText", "'action' is required parameter");
-        goto Done;
-    }
-    if (intent.getUri().empty()) {
-        responsePayload.put("errorText", "'uri' is required parameter");
-        goto Done;
-    }
-
-    intent.printDebug();
-
-Done:
-    post(request, requestPayload, responsePayload);
-    return true;
-}
-
-bool IntentManager::finish(LSMessage &message)
-{
-    LS::Message request(&message);
-    JValue requestPayload, responsePayload;
-    Intent intent;
-
-    pre(request, requestPayload, responsePayload);
-    if (intent.fromJson(requestPayload) == false) {
-        responsePayload.put("errorText", "Invalid parameter");
-        goto Done;
-    }
-    if (intent.getUri().empty()) {
-        responsePayload.put("errorText", "'uri' is required parameter");
-        goto Done;
-    }
-
-    intent.printDebug();
-
-Done:
-    post(request, requestPayload, responsePayload);
-    return true;
-}
-
-bool IntentManager::resolve(LSMessage &message)
-{
-    LS::Message request(&message);
-    JValue requestPayload, responsePayload;
-    Intent intent;
-
-    pre(request, requestPayload, responsePayload);
-    if (intent.fromJson(requestPayload) == false) {
-        responsePayload.put("errorText", "Invalid parameter");
-        goto Done;
-    }
-    if (intent.getUri().empty()) {
-        responsePayload.put("errorText", "'uri' is required parameter");
-        goto Done;
-    }
-
-    intent.printDebug();
-
-Done:
-    post(request, requestPayload, responsePayload);
-    return true;
-}
-
-bool IntentManager::getHandler(LSMessage &message)
-{
-    LS::Message request(&message);
-    JValue requestPayload, responsePayload;
-
-    pre(request, requestPayload, responsePayload);
-Done:
-    post(request, requestPayload, responsePayload);
-    return true;
-}
-
-bool IntentManager::setHandler(LSMessage &message)
-{
-    LS::Message request(&message);
-    JValue requestPayload, responsePayload;
-    Handler handler;
-
-    pre(request, requestPayload, responsePayload);
-    if (handler.fromJson(requestPayload) == false) {
-        responsePayload.put("errorText", "Invalid parameter");
-        goto Done;
-    }
-
-    handler.printDebug();
-
-Done:
-    post(request, requestPayload, responsePayload);
-    return true;
-}
-
-bool IntentManager::registerHandler(LSMessage &message)
-{
-    LS::Message request(&message);
-    JValue requestPayload, responsePayload;
-
-    pre(request, requestPayload, responsePayload);
-Done:
-    post(request, requestPayload, responsePayload);
-    return true;
-}
-
-bool IntentManager::unregisterHandler(LSMessage &message)
-{
-    LS::Message request(&message);
-    JValue requestPayload, responsePayload;
-
-    pre(request, requestPayload, responsePayload);
-Done:
-    post(request, requestPayload, responsePayload);
     return true;
 }
 
@@ -191,6 +114,7 @@ void IntentManager::pre(LS::Message& request, JValue& requestPayload, JValue& re
 void IntentManager::post(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
 {
     if (responsePayload.hasKey("errorText")) {
+        Logger::warning(responsePayload["errorText"].asString(), NAME);
         responsePayload.put("returnValue", false);
     }
     if (!responsePayload.hasKey("returnValue")) {
@@ -203,4 +127,115 @@ void IntentManager::post(LS::Message& request, JValue& requestPayload, JValue& r
     Logger::append(msg, request.getMethod());
     Logger::append(msg, request.getSenderServiceName());
     Logger::normal(msg, NAME);
+}
+
+void IntentManager::launch(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
+{
+    Intent intent;
+    if (intent.fromJson(requestPayload) == false) {
+        responsePayload.put("errorText", "Invalid parameter");
+        return;
+    }
+    if (intent.getAction().empty()) {
+        responsePayload.put("errorText", "'action' is required parameter");
+        return;
+    }
+}
+
+void IntentManager::finish(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
+{
+    Intent intent;
+    if (intent.fromJson(requestPayload) == false) {
+        responsePayload.put("errorText", "Invalid parameter");
+        return;
+    }
+}
+
+void IntentManager::resolve(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
+{
+    Intent intent;
+    if (!intent.fromJson(requestPayload)) {
+        responsePayload.put("errorText", "Invalid parameter");
+        return;
+    }
+    JValue handlers;
+    handlers = HandlerManager::getInstance().resolve(intent);
+    responsePayload.put("handlers", handlers);
+}
+
+void IntentManager::getHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
+{
+    Handler handler;
+    if (!handler.fromJson(requestPayload)) {
+        responsePayload.put("errorText", "Invalid parameter");
+        return;
+    }
+    if (handler.getId().empty()) {
+        responsePayload.put("errorText", "'id' is required parameter");
+        return;
+    }
+    responsePayload = HandlerManager::getInstance().getHandler(handler.getId());
+
+    if (responsePayload.objectSize() == 0) {
+        responsePayload.put("errorText", "Failed to find handler");
+    }
+}
+
+void IntentManager::setHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
+{
+    Handler handler;
+    if (!handler.fromJson(requestPayload)) {
+        responsePayload.put("errorText", "Invalid parameter");
+        return;
+    }
+    if (handler.getId().empty()) {
+        responsePayload.put("errorText", "'id' is required parameter");
+        return;
+    }
+    if (handler.getActions().size() == 0) {
+        responsePayload.put("errorText", "'actions' is required parameter");
+        return;
+    }
+    if (!HandlerManager::getInstance().setHandler(handler)) {
+        responsePayload.put("errorText", "Failed to set hander");
+        return;
+    }
+}
+
+void IntentManager::registerHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
+{
+    Handler handler;
+    if (!handler.fromJson(requestPayload)) {
+        responsePayload.put("errorText", "Invalid parameter");
+        return;
+    }
+    if (handler.getId().empty()) {
+        responsePayload.put("errorText", "'id' is required parameter");
+        return;
+    }
+    if (handler.getActions().size() == 0) {
+        responsePayload.put("errorText", "'actions' is required parameter");
+        return;
+    }
+    if (!HandlerManager::getInstance().registerHandler(handler)) {
+        responsePayload.put("errorText", "Failed to register handler");
+        return;
+    }
+}
+
+void IntentManager::unregisterHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
+{
+    Handler handler;
+    if (!handler.fromJson(requestPayload)) {
+        responsePayload.put("errorText", "Invalid parameter");
+        return;
+    }
+    if (handler.getId().empty()) {
+        responsePayload.put("errorText", "'id' is required parameter");
+        return;
+    }
+    if (!HandlerManager::getInstance().unregisterHandler(handler)) {
+        responsePayload.put("errorText", "Failed to unregister handler");
+        return;
+    }
 }

@@ -21,11 +21,12 @@
 using namespace std;
 
 class Intent : public ISerializable {
+friend class Handler;
 public:
     Intent();
     virtual ~Intent();
 
-    virtual bool fromJson(JValue& json) override;
+    virtual bool fromJson(const JValue& json) override;
     virtual bool toJson(JValue& json) override;
     virtual void printDebug() override;
 

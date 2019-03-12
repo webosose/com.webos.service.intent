@@ -15,6 +15,7 @@
 #define MANAGER_INTENTMANAGER_H_
 
 #include <iostream>
+#include <queue>
 
 #include <luna-service2/lunaservice.hpp>
 #include <pbnjson.hpp>
@@ -31,22 +32,28 @@ public:
     virtual ~IntentManager();
 
     virtual bool onInitialization() override;
-    virtual bool onFInalization() override;
+    virtual bool onFinalization() override;
 
-    bool launch(LSMessage &message);
-    bool finish(LSMessage &message);
-    bool resolve(LSMessage &message);
-    bool getHandler(LSMessage &message);
-    bool setHandler(LSMessage &message);
-    bool registerHandler(LSMessage &message);
-    bool unregisterHandler(LSMessage &message);
+    void launch(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void finish(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void resolve(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void getHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void setHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void registerHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void unregisterHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
 
 private:
     static const string NAME;
-    IntentManager();
+    static const LSMethod METHODS[];
 
-    void pre(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
-    void post(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    queue<LS::Message> m_requests;
+
+    static bool onRequest(LSHandle* sh, LSMessage* msg, void* category_context);
+
+    static void pre(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    static void post(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+
+    IntentManager();
 };
 
 #endif /* MANAGER_INTENTMANAGER_H_ */

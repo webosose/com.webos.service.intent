@@ -46,13 +46,13 @@ public:
     {
         bool result;
         Logger::getInstance().normal("finalize starts", m_name);
-        result = onFInalization();
+        result = onFinalization();
         Logger::getInstance().normal("finalize ends", m_name);
         return result;
     }
 
     virtual bool onInitialization() = 0;
-    virtual bool onFInalization() = 0;
+    virtual bool onFinalization() = 0;
 
 protected:
     IManageable()
@@ -72,8 +72,6 @@ protected:
     }
 
     GMainLoop* m_mainloop;
-
-private:
     string m_name;
 
 };

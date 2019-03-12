@@ -102,6 +102,7 @@ void Logger::write(string& msg, string& name, enum LogLevel level)
     if (level < m_level)
         return;
 
+    msg = " " + msg;
     Logger::prepend(msg, (name.empty() ? "UNKNOWN" : name));
     Logger::prepend(msg, convertLevel(level));
 

@@ -28,7 +28,7 @@ Intent::~Intent()
 
 }
 
-bool Intent::fromJson(JValue& json)
+bool Intent::fromJson(const JValue& json)
 {
     if (json.hasKey("requester") && json["requester"].isString()) {
         m_requester = json["requester"].asString();

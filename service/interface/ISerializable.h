@@ -23,7 +23,7 @@ public:
     ISerializable() {};
     virtual ~ISerializable() {};
 
-    virtual bool fromJson(JValue& json) = 0;
+    virtual bool fromJson(const JValue& json) = 0;
     virtual bool toJson(JValue& json) = 0;
     virtual void printDebug() = 0;
 

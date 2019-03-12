@@ -25,7 +25,7 @@ public:
     Params();
     virtual ~Params();
 
-    virtual bool fromJson(JValue& json) override;
+    virtual bool fromJson(const JValue& json) override;
     virtual bool toJson(JValue& json) override;
     virtual void printDebug() override;
 

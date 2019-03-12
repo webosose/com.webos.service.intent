@@ -29,7 +29,7 @@ bool StorageManager::onInitialization()
     return true;
 }
 
-bool StorageManager::onFInalization()
+bool StorageManager::onFinalization()
 {
     return true;
 }

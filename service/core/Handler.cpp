@@ -24,13 +24,26 @@ Handler::~Handler()
 {
 }
 
-bool Handler::fromJson(JValue& json)
+bool Handler::launch(Intent intent)
+{
+    return true;
+}
+
+bool Handler::isMatched(const Intent& intent)
+{
+    if (intent.m_action.empty()) {
+        return true;
+    }
+    return true;
+}
+
+bool Handler::fromJson(const JValue& json)
 {
     if (json.hasKey("id") && json["id"].isString()) {
         m_id = json["id"].asString();
     }
     if (json.hasKey("priority") && json["priority"].isNumber()) {
-        m_priority = json["action"].asNumber<int>();
+        m_priority = json["priority"].asNumber<int>();
     }
     if (json.hasKey("actions") && json["actions"].isArray()) {
         for (JValue action : json["actions"].items()) {
@@ -52,6 +65,26 @@ bool Handler::fromJson(JValue& json)
 
 bool Handler::toJson(JValue& json)
 {
+    json.put("id", m_id);
+    json.put("priority", m_priority);
+
+    JValue actions = pbnjson::Array();
+    for (unsigned int i = 0; i < m_actions.size(); ++i) {
+        actions.append(m_actions[i]);
+    }
+    json.put("actions", actions);
+
+    JValue mimeTypes = pbnjson::Array();
+    for (unsigned int i = 0; i < m_mimeTypes.size(); ++i) {
+        actions.append(m_mimeTypes[i]);
+    }
+    json.put("mimeTypes", mimeTypes);
+
+    JValue uris = pbnjson::Array();
+    for (unsigned int i = 0; i < m_uris.size(); ++i) {
+        actions.append(m_uris[i]);
+    }
+    json.put("uris", uris);
     return true;
 }
 
@@ -61,19 +94,19 @@ void Handler::printDebug()
     cout << "priority : " << m_priority << endl;
 
     cout << "actions :" << (m_actions.size() ? " " : "empty");
-    for (unsigned int i = 0; i < m_actions.size(); i++) {
+    for (unsigned int i = 0; i < m_actions.size(); ++i) {
         cout << "[" << m_actions[i] << "]";
     }
     cout << endl;
 
     cout << "mimeTypes :" << (m_mimeTypes.size() ? " " : "empty");
-    for (unsigned int i = 0; i < m_mimeTypes.size(); i++) {
+    for (unsigned int i = 0; i < m_mimeTypes.size(); ++i) {
         cout << "[" << m_mimeTypes[i] << "]";
     }
     cout << endl;
 
     cout << "uris :" << (m_uris.size() ? " " : "empty");
-    for (unsigned int i = 0; i < m_uris.size(); i++) {
+    for (unsigned int i = 0; i < m_uris.size(); ++i) {
         cout << "[" << m_uris[i] << "]";
     }
     cout << endl;

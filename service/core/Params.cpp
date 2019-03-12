@@ -21,7 +21,7 @@ Params::~Params()
 {
 }
 
-bool Params::fromJson(JValue& json)
+bool Params::fromJson(const JValue& json)
 {
     if (json.hasKey("requester") && json["requester"].isString()) {
         m_requester = json["requester"].asString();
