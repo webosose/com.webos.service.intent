@@ -13,6 +13,32 @@
 
 #include "Handler.h"
 
+string Handler::toString(enum HandlerType type)
+{
+    switch(type) {
+    case HandlerType_BuiltIn:
+        return "builtIn";
+
+    case HandlerType_Runtime:
+        return "runtime";
+
+    default:
+        return "unknown";
+    }
+    return "unknown";
+}
+
+enum HandlerType Handler::toEnum(string type)
+{
+    if (type == "builtIn") {
+        return HandlerType_BuiltIn;
+    } else if (type == "runtime") {
+        return HandlerType_Runtime;
+    } else {
+        return HandlerType_Unknown;
+    }
+}
+
 Handler::Handler()
     : m_id("")
     , m_priority(0)
@@ -60,6 +86,9 @@ bool Handler::fromJson(const JValue& json)
             m_uris.push_back(uri.asString());
         }
     }
+    if (json.hasKey("type") && json["type"].isString()) {
+        m_type = toEnum(json["type"].asString());
+    }
     return true;
 }
 
@@ -85,6 +114,7 @@ bool Handler::toJson(JValue& json)
         actions.append(m_uris[i]);
     }
     json.put("uris", uris);
+    json.put("type", toString(m_type));
     return true;
 }
 

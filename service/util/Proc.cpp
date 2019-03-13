@@ -13,7 +13,7 @@
 
 #include "../util/Proc.h"
 
-bool Proc::getMemoryInfo(long& total, long& available)
+bool Process::getMemoryInfo(long& total, long& available)
 {
     string type;
     long value;

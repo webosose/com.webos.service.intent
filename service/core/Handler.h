@@ -30,6 +30,9 @@ enum HandlerType {
 
 class Handler : public ISerializable {
 public:
+    static string toString(enum HandlerType type);
+    static enum HandlerType toEnum(string type);
+
     Handler();
     virtual ~Handler();
 
@@ -68,6 +71,16 @@ public:
     const deque<string>& getUris()
     {
         return m_uris;
+    }
+
+    void setType(HandlerType type)
+    {
+        m_type = type;
+    }
+
+    const HandlerType getType()
+    {
+        return m_type;
     }
 
 private:

@@ -20,7 +20,7 @@
 
 ApplicationManager::ApplicationManager()
 {
-    m_name = "com.webos.service.applicationmanager";
+    setName("ApplicationManager");
 }
 
 ApplicationManager::~ApplicationManager()
@@ -29,7 +29,7 @@ ApplicationManager::~ApplicationManager()
 
 bool ApplicationManager::onInitialization()
 {
-    m_serverStatus = IntentManager::getInstance().registerServerStatus(m_name.c_str(), onServerStatus);
+    m_serverStatus = IntentManager::getInstance().registerServerStatus("com.webos.service.applicationmanager", onServerStatus);
     return true;
 }
 
@@ -60,35 +60,37 @@ bool ApplicationManager::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
     Message response(reply);
     pbnjson::JValue responsePayload = JDomParser::fromString(response.getPayload());
 
+    Logger::info(ApplicationManager::getInstance().m_name, "Return", "listApps");
     if (response.isHubError() || !responsePayload["returnValue"].asBool()) {
-        Logger::error("Error occurred: " + std::string(response.getPayload()), ApplicationManager::getInstance().m_name);
+        Logger::error(ApplicationManager::getInstance().m_name, std::string(response.getPayload()));
         return false;
     }
 
     if (!responsePayload.hasKey("apps") || !responsePayload["apps"].isArray() || responsePayload["apps"].arraySize() <= 0) {
-        Logger::error("Error occurred: " + std::string(response.getPayload()), ApplicationManager::getInstance().m_name);
+        Logger::error(ApplicationManager::getInstance().m_name, response.getPayload());
         return false;
     }
 
     string id;
     for (JValue application : responsePayload["apps"].items()) {
         if (!application.hasKey("intentFilter")) continue;
-        if (!application.hasKey("id")) continue; // Unknown error!
+        if (!application.hasKey("id")) continue;
         if (application["id"].asString(id) != CONV_OK) continue;
 
         Handler handler;
         handler.fromJson(application["intentFilter"]);
         handler.setId(application["id"].asString());
-//        if (!HandlerManager::getInstance().registerHandler(handler)) {
-//            Logger::error("Error occurred: ", ApplicationManager::getInstance().m_name);
-//        }
+        handler.setType(HandlerType_BuiltIn);
+        if (!HandlerManager::getInstance().registerHandler(handler)) {
+            Logger::error(ApplicationManager::getInstance().m_name, handler.getId(), "Failed to register handler");
+        }
     }
     return true;
 }
 
 void ApplicationManager::listApps()
 {
-    static const string API = "luna://" + m_name + "/listApps";
+    static const string API = "luna://com.webos.service.applicationmanager/listApps";
     pbnjson::JValue requestPayload = pbnjson::Object();
     requestPayload.put("subscribe", true);
 
@@ -97,10 +99,10 @@ void ApplicationManager::listApps()
             API.c_str(),
             requestPayload.stringify().c_str()
         );
-        Logger::debug(API + " Request:" + requestPayload.stringify(), m_name);
+        Logger::debug(m_name, "Call", "listApps");
         m_listApps.continueWith(_listApps, this);
     }
     catch (const LS::Error &e) {
-        Logger::error("Exception: " + std::string(e.what()), m_name);
+        Logger::error(m_name, e.what());
     }
 }

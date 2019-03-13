@@ -16,6 +16,7 @@
 #include "core/Intent.h"
 #include "core/Handler.h"
 #include "manager/HandlerManager.h"
+#include "lunaservice.h"
 #include "util/Logger.h"
 
 const string IntentManager::NAME = "com.webos.service.intent";
@@ -79,7 +80,7 @@ bool IntentManager::onRequest(LSHandle *sh, LSMessage *msg, void *category_conte
 IntentManager::IntentManager()
     : Handle(LS::registerService(NAME.c_str()))
 {
-    setName(NAME);
+    setName("IntentManager");
     this->registerCategory("/", METHODS, NULL, NULL);
 }
 
@@ -104,17 +105,13 @@ void IntentManager::pre(LS::Message& request, JValue& requestPayload, JValue& re
     requestPayload = JDomParser::fromString(request.getPayload());
     responsePayload = pbnjson::Object();
 
-    string msg = "";
-    Logger::append(msg, "Request");
-    Logger::append(msg, request.getMethod());
-    Logger::append(msg, request.getSenderServiceName());
-    Logger::normal(msg, NAME);
+    Logger::info(NAME, "Request", request.getMethod());
 }
 
 void IntentManager::post(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
 {
     if (responsePayload.hasKey("errorText")) {
-        Logger::warning(responsePayload["errorText"].asString(), NAME);
+        Logger::warning(NAME, responsePayload["errorText"].asString());
         responsePayload.put("returnValue", false);
     }
     if (!responsePayload.hasKey("returnValue")) {
@@ -122,11 +119,7 @@ void IntentManager::post(LS::Message& request, JValue& requestPayload, JValue& r
     }
     request.respond(responsePayload.stringify().c_str());
 
-    string msg = "";
-    Logger::append(msg, "Response");
-    Logger::append(msg, request.getMethod());
-    Logger::append(msg, request.getSenderServiceName());
-    Logger::normal(msg, NAME);
+    Logger::info(NAME, "Response", request.getMethod());
 }
 
 void IntentManager::launch(LS::Message& request, JValue& requestPayload, JValue& responsePayload)

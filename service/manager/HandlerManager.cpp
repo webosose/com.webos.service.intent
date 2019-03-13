@@ -15,6 +15,7 @@
 
 #include <algorithm>
 
+#include "manager/StorageManager.h"
 #include "util/Logger.h"
 
 HandlerManager::HandlerManager()
@@ -25,19 +26,22 @@ HandlerManager::HandlerManager()
     JValue json = pbnjson::Object();
 
     Handler handler;
-
-    json.put("id", "test2");
-    json.put("priority", 1);
-    handler.fromJson(json);
-    registerHandler(handler);
-
-    json.put("id", "test3");
-    json.put("priority", 2);
-    handler.fromJson(json);
-    registerHandler(handler);
+//
+//    json.put("id", "test2");
+//    json.put("priority", 1);
+//    handler.fromJson(json);
+//    registerHandler(handler);
+//
+//    json.put("id", "test3");
+//    json.put("priority", 2);
+//    handler.fromJson(json);
+//    registerHandler(handler);
 
     json.put("id", "test1");
+    json.put("actions", pbnjson::Array());
+    json["actions"].append("test");
     json.put("priority", 0);
+    handler.setType(HandlerType_BuiltIn);
     handler.fromJson(json);
     registerHandler(handler);
 }
@@ -48,11 +52,33 @@ HandlerManager::~HandlerManager()
 
 bool HandlerManager::onInitialization()
 {
+    Handler handler;
+    JValue handlers = StorageManager::getInstance().get()["handlers"];
+    for (JValue item : handlers.items()) {
+        handler.fromJson(item);
+
+        if (handler.getType() == HandlerType_Runtime)
+            registerHandler(handler);
+    }
+    Logger::info(m_name, "Load runtime handlers");
     return true;
 }
 
 bool HandlerManager::onFinalization()
 {
+    JValue handlers = pbnjson::Array();
+    for (unsigned int i = 0; i < m_handlers.size(); ++i) {
+        if (m_handlers[i].getType() == HandlerType_Runtime) {
+            JValue handler = pbnjson::Object();
+            m_handlers[i].toJson(handler);
+            handlers.append(handler);
+        }
+    }
+
+    if (StorageManager::getInstance().get()["handlers"] != handlers) {
+        StorageManager::getInstance().get().put("handlers", handlers);
+        Logger::info(m_name, "Save changed runtime handlers");
+    }
     return true;
 }
 
@@ -88,17 +114,36 @@ JValue HandlerManager::getHandler(const string& id)
 
 bool HandlerManager::setHandler(Handler& handler)
 {
+    deque<Handler>::iterator it = findHandler(handler.getId());
+    if (it == m_handlers.end()) {
+        Logger::warning(m_name, handler.getId(), "Cannot find handler");
+        return false;
+    }
+
+    // Currently, setHandler API overwrites all internal information
+    JValue json = pbnjson::Object();
+    handler.toJson(json);
+    handler.setType(HandlerType_Runtime);
+    it->fromJson(json);
     return true;
 }
 
 bool HandlerManager::registerHandler(Handler& handler)
 {
     if (handler.getId().empty()) {
-        Logger::warning("Id is null", m_name);
+        Logger::warning(m_name, "Id is null");
         return false;
     }
     if (hasHandler(handler.getId())) {
-        Logger::warning("Same Id is already registered", m_name);
+        if (handler.getType() == HandlerType_BuiltIn) {
+            Logger::info(m_name, handler.getId(), "'runtime' handler is already registered");
+            return true;
+        }
+        Logger::warning(m_name, handler.getId(), "Same Id is already registered.");
+        return false;
+    }
+    if (handler.getActions().size() == 0) {
+        Logger::warning(m_name, handler.getId(), "'Actions' is required parameter for registration");
         return false;
     }
 
@@ -115,12 +160,12 @@ bool HandlerManager::registerHandler(Handler& handler)
 bool HandlerManager::unregisterHandler(Handler& handler)
 {
     if (handler.getId().empty()) {
-        Logger::warning("Id is null", m_name);
+        Logger::warning(m_name, "Id is null");
         return false;
     }
     deque<Handler>::iterator it = findHandler(handler.getId());
     if (it == m_handlers.end()) {
-        Logger::normal("The Id is not registered", m_name);
+        Logger::info(m_name, handler.getId(), "The Id is not registered");
         return false;
     }
 

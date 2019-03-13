@@ -29,7 +29,6 @@ void exitDaemon(int signo)
     g_main_loop_quit(s_mainloop);
 }
 
-
 int main()
 {
     signal(SIGTERM, exitDaemon);
@@ -38,18 +37,18 @@ int main()
     s_mainloop = g_main_loop_new(NULL, FALSE);
 
     // xxx: DON'T change initialization order.
+    StorageManager::getInstance().initialize(s_mainloop);
     HandlerManager::getInstance().initialize(s_mainloop);
     IntentManager::getInstance().initialize(s_mainloop);
-    StorageManager::getInstance().initialize(s_mainloop);
     ApplicationManager::getInstance().initialize(s_mainloop);
 
     g_main_loop_run(s_mainloop);
 
     // xxx: DON'T change finalize order.
     ApplicationManager::getInstance().finalize();
-    StorageManager::getInstance().finalize();
     IntentManager::getInstance().finalize();
     HandlerManager::getInstance().finalize();
+    StorageManager::getInstance().finalize();
 
     g_main_loop_unref(s_mainloop);
 

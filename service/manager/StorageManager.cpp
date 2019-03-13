@@ -12,7 +12,13 @@
  */
 
 #include "StorageManager.h"
+
+#include <fstream>
+
 #include "util/Logger.h"
+
+// TODO: following value should be defined in build env.
+const string StorageManager::PATH = "/var/preferences/com.webos.service.intent.json";
 
 StorageManager::StorageManager()
 {
@@ -21,15 +27,38 @@ StorageManager::StorageManager()
 
 StorageManager::~StorageManager()
 {
-
 }
 
 bool StorageManager::onInitialization()
 {
+    m_database = JDomParser::fromFile(PATH.c_str());
+
+    if (m_database.isNull()) {
+        Logger::info(m_name, "The storage file is empty. Try to initialize the database");
+        m_database = pbnjson::Object();
+    }
     return true;
 }
 
 bool StorageManager::onFinalization()
 {
+    sync();
     return true;
+}
+
+JValue& StorageManager::get()
+{
+    return m_database;
+}
+
+void StorageManager::sync()
+{
+    ofstream out(PATH.c_str());
+    if (!out.is_open()) {
+        Logger::error(m_name, "Failed to open database file");
+        return;
+    }
+    Logger::info(m_name, "database is syncronized");
+    out << m_database.stringify("    ");
+    out.close();
 }

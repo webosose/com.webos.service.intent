@@ -16,9 +16,12 @@
 
 #include <iostream>
 
+#include <pbnjson.hpp>
+
 #include "interface/IManageable.h"
 
 using namespace std;
+using namespace pbnjson;
 
 class StorageManager : public IManageable<StorageManager> {
 friend class IManageable<StorageManager>;
@@ -28,8 +31,15 @@ public:
     virtual bool onInitialization() override;
     virtual bool onFinalization() override;
 
+    virtual JValue& get();
+    virtual void sync();
+
 private:
+    static const string PATH;
+
     StorageManager();
+
+    JValue m_database;
 };
 
 #endif /* MANAGER_STORAGEMANAGER_H_ */

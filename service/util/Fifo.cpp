@@ -22,7 +22,7 @@
 
 #include "../util/Logger.h"
 
-#define LOG_NAME "FIFO"
+static const string LOG_NAME = "FIFO";
 
 Fifo::Fifo()
     : m_fd(-1)
@@ -42,7 +42,7 @@ bool Fifo::open(string path, bool readonly)
     mkfifo(path.c_str(), 0666);
     m_fd = ::open(path.c_str(), O_RDWR);
     if (m_fd < 0) {
-        Logger::error(strerror(errno), LOG_NAME);
+        Logger::error(LOG_NAME, strerror(errno));
         return false;
     }
     return true;
@@ -63,7 +63,7 @@ void Fifo::close()
 int Fifo::send(const void* buffer, int size)
 {
     if (m_readonly || m_fd < 0) {
-        Logger::error("Invalid write operation", LOG_NAME);
+        Logger::error(LOG_NAME, "Invalid write operation");
         return -1;
     }
     return ::write(m_fd, buffer, size);
@@ -72,7 +72,7 @@ int Fifo::send(const void* buffer, int size)
 int Fifo::receive(void *buffer, int size)
 {
     if (!m_readonly || m_fd < 0) {
-        Logger::error("Invalid read operation", LOG_NAME);
+        Logger::error(LOG_NAME, "Invalid read operation");
         return -1;
     }
     return ::read(m_fd, buffer, size);

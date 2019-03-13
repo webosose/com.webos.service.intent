@@ -24,10 +24,10 @@ enum OverCommitPolicy {
 
 };
 
-class Proc {
+class Process {
 public:
-    Proc() {}
-    virtual ~Proc() {}
+    Process() {}
+    virtual ~Process() {}
 
     static bool getMemoryInfo(long& total, long& available);
 };
