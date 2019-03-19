@@ -129,8 +129,16 @@ void IntentManager::launch(LS::Message& request, JValue& requestPayload, JValue&
         responsePayload.put("errorText", "Invalid parameter");
         return;
     }
-    if (intent.getAction().empty()) {
+    if (!intent.checkAction()) {
         responsePayload.put("errorText", "'action' is required parameter");
+        return;
+    }
+    if (!intent.checkUri()) {
+        responsePayload.put("errorText", "'uri' is required parameter");
+        return;
+    }
+    if (!HandlerManager::getInstance().launch(intent)) {
+        responsePayload.put("errorText", "Failed to launch intent");
         return;
     }
 }
@@ -152,7 +160,12 @@ void IntentManager::resolve(LS::Message& request, JValue& requestPayload, JValue
         return;
     }
     JValue handlers;
-    handlers = HandlerManager::getInstance().resolve(intent);
+
+    if (requestPayload.objectSize() == 0) {
+        handlers = HandlerManager::getInstance().getAllHandlers();
+    } else {
+        handlers = HandlerManager::getInstance().resolve(intent);
+    }
     responsePayload.put("handlers", handlers);
 }
 

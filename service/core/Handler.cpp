@@ -13,11 +13,12 @@
 
 #include "Handler.h"
 
+
 string Handler::toString(enum HandlerType type)
 {
     switch(type) {
-    case HandlerType_BuiltIn:
-        return "builtIn";
+    case HandlerType_AppInfo:
+        return "appinfo";
 
     case HandlerType_Runtime:
         return "runtime";
@@ -30,8 +31,8 @@ string Handler::toString(enum HandlerType type)
 
 enum HandlerType Handler::toEnum(string type)
 {
-    if (type == "builtIn") {
-        return HandlerType_BuiltIn;
+    if (type == "appinfo") {
+        return HandlerType_AppInfo;
     } else if (type == "runtime") {
         return HandlerType_Runtime;
     } else {
@@ -57,8 +58,46 @@ bool Handler::launch(Intent intent)
 
 bool Handler::isMatched(const Intent& intent)
 {
-    if (intent.m_action.empty()) {
-        return true;
+    if (!intent.checkAction()) {
+        return false;
+    }
+    if (!intent.checkUri()) {
+        return false;
+    }
+
+    // check 'ACTION'
+    deque<string>::iterator i;
+    i = find_if(m_actions.begin(), m_actions.end(),
+                [&] (const string& action) { return action == intent.m_action; } );
+    if (i == m_actions.end()) {
+        return false;
+    }
+
+    // check URI
+    if (!m_uris.empty()) {
+        string_view schema = intent.getUri().scheme();
+        string_view path = intent.getUri().path();
+        deque<uri>::iterator j;
+        j = find_if(m_uris.begin(), m_uris.end(),
+                    [&] (const uri& u) {
+                            // TODO check path & regex
+                            cout << "intent schema - " << schema << endl;
+                            cout << "handler schema - " << u.scheme() << endl;
+                            return u.scheme() == schema;
+                     });
+        if (j == m_uris.end()) {
+            return false;
+        }
+    }
+
+    // check mimeType
+    if (!m_mimeTypes.empty()) {
+        deque<string>::iterator k;
+        k = find_if(m_mimeTypes.begin(), m_mimeTypes.end(),
+                     [&] (const string& mimeType) { return mimeType == intent.m_mimeType; } );
+        if (k == m_mimeTypes.end()) {
+            return false;
+        }
     }
     return true;
 }
@@ -83,7 +122,7 @@ bool Handler::fromJson(const JValue& json)
     }
     if (json.hasKey("uris") && json["uris"].isArray()) {
         for (JValue uri : json["uris"].items()) {
-            m_uris.push_back(uri.asString());
+            m_uris.push_back(network::uri(uri.asString()));
         }
     }
     if (json.hasKey("type") && json["type"].isString()) {
@@ -111,7 +150,7 @@ bool Handler::toJson(JValue& json)
 
     JValue uris = pbnjson::Array();
     for (unsigned int i = 0; i < m_uris.size(); ++i) {
-        actions.append(m_uris[i]);
+        actions.append(m_uris[i].string());
     }
     json.put("uris", uris);
     json.put("type", toString(m_type));

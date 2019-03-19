@@ -25,7 +25,7 @@ using namespace std;
 class ApplicationManager : public IManageable<ApplicationManager> {
 friend class IManageable<ApplicationManager>;
 public:
-    ApplicationManager();
+    virtual ~ApplicationManager();
 
     virtual bool onInitialization() override;
     virtual bool onFinalization() override;
@@ -34,7 +34,7 @@ public:
     bool launch();
 
 private:
-    virtual ~ApplicationManager();
+    ApplicationManager();
 
     static bool _listApps(LSHandle* sh, LSMessage* reply, void* ctx);
     void listApps();

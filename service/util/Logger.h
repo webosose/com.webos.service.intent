@@ -48,6 +48,12 @@ public:
 
     virtual ~Logger();
 
+    static Logger& getInstance()
+    {
+        static Logger _instance;
+        return _instance;
+    }
+
     void setLevel(enum LogLevel level);
     void setType(enum LogType type);
 
@@ -55,12 +61,6 @@ private:
     static const string EMPTY;
 
     static const string& toString(const enum LogLevel& level);
-
-    static Logger& getInstance()
-    {
-        static Logger _instance;
-        return _instance;
-    }
 
     Logger();
 

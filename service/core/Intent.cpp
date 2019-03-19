@@ -37,7 +37,7 @@ bool Intent::fromJson(const JValue& json)
         m_action = json["action"].asString();
     }
     if (json.hasKey("uri") && json["uri"].isString()) {
-        m_uri = json["uri"].asString();
+        m_uri = uri(json["uri"].asString());
     }
     if (json.hasKey("mimeType") && json["mimeType"].isString()) {
         m_mimeType = json["mimeType"].asString();
@@ -55,7 +55,7 @@ bool Intent::toJson(JValue& json)
 {
     json.put("requester", m_requester);
     json.put("action", m_action);
-    json.put("uri", m_uri);
+    json.put("uri", m_uri.string());
     json.put("mimeType", m_mimeType);
     json.put("result", m_result);
     json.put("extra", m_extra.duplicate());
@@ -66,7 +66,7 @@ void Intent::printDebug()
 {
     cout << "requester : " << (m_requester.empty() ? "NULL" : m_requester) << endl;
     cout << "action : " << (m_action.empty() ? "NULL" : m_action) << endl;
-    cout << "uri : " << (m_uri.empty() ? "NULL" : m_uri) << endl;
+    cout << "uri : " << (m_uri.empty() ? "NULL" : m_uri.string()) << endl;
     cout << "mimeType : " << (m_mimeType.empty() ? "NULL" : m_mimeType) << endl;
     cout << "result : " << (m_result.empty() ? "NULL" : m_result) << endl;
     cout << "extra : " << (m_extra.objectSize() == 0 ? "NULL" : m_extra.stringify("    ")) << endl;

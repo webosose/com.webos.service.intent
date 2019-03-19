@@ -17,8 +17,8 @@
 #include <iostream>
 #include <queue>
 
-#include <luna-service2/lunaservice.hpp>
 #include <pbnjson.hpp>
+#include <luna-service2/lunaservice.hpp>
 
 #include "interface/IManageable.h"
 

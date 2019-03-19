@@ -30,7 +30,9 @@ public:
     virtual bool onInitialization() override;
     virtual bool onFinalization() override;
 
-    virtual JValue resolve(Intent intent);
+    virtual bool launch(Intent& intent);
+    virtual JValue resolve(Intent& intent);
+    virtual JValue getAllHandlers();
     virtual JValue getHandler(const string& id);
     virtual bool setHandler(Handler& handler);
     virtual bool registerHandler(Handler& handler);
@@ -38,6 +40,8 @@ public:
 
 private:
     HandlerManager();
+
+    virtual void loadConfig(const JValue& json);
 
     virtual bool hasHandler(const string& id);
     virtual deque<Handler>::iterator findHandler(const string& id);

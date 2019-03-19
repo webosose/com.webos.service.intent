@@ -1,2 +1,20 @@
 {
+    "handlers": [
+        {
+            "id": "com.webos.app.test_1",
+            "actions": ["action_test_1"]
+        },
+        {
+            "id": "com.webos.app.test_1",
+            "actions": ["action_test_1"]
+        },
+        {
+            "id": "com.webos.app.test_2",
+            "actions": ["action_test_1"]
+        },
+        {
+            "id": "com.webos.app.test_3",
+            "actions": ["action_test_1", "action_test_2"]
+        }
+    ]
 }

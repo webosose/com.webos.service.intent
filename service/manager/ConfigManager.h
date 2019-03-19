@@ -11,8 +11,8 @@
  * LICENSE@@@
  */
 
-#ifndef MANAGER_STORAGEMANAGER_H_
-#define MANAGER_STORAGEMANAGER_H_
+#ifndef MANAGER_CONFIGMANAGER_H_
+#define MANAGER_CONFIGMANAGER_H_
 
 #include <iostream>
 
@@ -23,23 +23,39 @@
 using namespace std;
 using namespace pbnjson;
 
-class StorageManager : public IManageable<StorageManager> {
-friend class IManageable<StorageManager>;
+class ConfigManager : public IManageable<ConfigManager> {
+friend class IManageable<ConfigManager>;
 public:
-    virtual ~StorageManager();
+    virtual ~ConfigManager();
 
     virtual bool onInitialization() override;
     virtual bool onFinalization() override;
 
-    virtual JValue& get();
-    virtual void sync();
+    virtual JValue& getDebugDB();
+    virtual JValue& getRuntimeDB();
+    virtual void syncRuntime();
+
+    bool isTest()
+    {
+        return m_isTest;
+    }
+
+    bool isVerbose()
+    {
+        return m_isVerbose;
+    }
 
 private:
-    static const string PATH;
+    static const string DEBUG_DB_PATH;
+    static const string RUNTIME_DB_PATH;
 
-    StorageManager();
+    ConfigManager();
 
-    JValue m_database;
+    JValue m_debugDB;
+    JValue m_runtimeDB;
+
+    bool m_isTest;
+    bool m_isVerbose;
 };
 
-#endif /* MANAGER_STORAGEMANAGER_H_ */
+#endif /* MANAGER_CONFIGMANAGER_H_ */

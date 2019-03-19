@@ -16,15 +16,17 @@
 
 #include <iostream>
 #include <deque>
+#include <network/uri.hpp>
 
 #include "interface/ISerializable.h"
 #include "core/Intent.h"
 
 using namespace std;
+using namespace network;
 
 enum HandlerType {
     HandlerType_Unknown,
-    HandlerType_BuiltIn,
+    HandlerType_AppInfo,
     HandlerType_Runtime,
 };
 
@@ -68,7 +70,7 @@ public:
         return m_mimeTypes;
     }
 
-    const deque<string>& getUris()
+    const deque<uri>& getUris()
     {
         return m_uris;
     }
@@ -89,7 +91,7 @@ private:
 
     deque<string> m_actions;
     deque<string> m_mimeTypes;
-    deque<string> m_uris;
+    deque<uri> m_uris;
 
     enum HandlerType m_type;
 };

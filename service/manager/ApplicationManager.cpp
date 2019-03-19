@@ -80,7 +80,7 @@ bool ApplicationManager::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
         Handler handler;
         handler.fromJson(application["intentFilter"]);
         handler.setId(application["id"].asString());
-        handler.setType(HandlerType_BuiltIn);
+        handler.setType(HandlerType_AppInfo);
         if (!HandlerManager::getInstance().registerHandler(handler)) {
             Logger::error(ApplicationManager::getInstance().m_name, handler.getId(), "Failed to register handler");
         }

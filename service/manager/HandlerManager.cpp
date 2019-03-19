@@ -11,56 +11,42 @@
  * LICENSE@@@
  */
 
+#include "ConfigManager.h"
 #include "HandlerManager.h"
 
 #include <algorithm>
 
-#include "manager/StorageManager.h"
 #include "util/Logger.h"
 
 HandlerManager::HandlerManager()
 {
     setName("HanderManager");
-
-    // Test Data
-    JValue json = pbnjson::Object();
-
-    Handler handler;
-//
-//    json.put("id", "test2");
-//    json.put("priority", 1);
-//    handler.fromJson(json);
-//    registerHandler(handler);
-//
-//    json.put("id", "test3");
-//    json.put("priority", 2);
-//    handler.fromJson(json);
-//    registerHandler(handler);
-
-    json.put("id", "test1");
-    json.put("actions", pbnjson::Array());
-    json["actions"].append("test");
-    json.put("priority", 0);
-    handler.setType(HandlerType_BuiltIn);
-    handler.fromJson(json);
-    registerHandler(handler);
 }
 
 HandlerManager::~HandlerManager()
 {
 }
 
-bool HandlerManager::onInitialization()
+void HandlerManager::loadConfig(const JValue& json)
 {
-    Handler handler;
-    JValue handlers = StorageManager::getInstance().get()["handlers"];
-    for (JValue item : handlers.items()) {
+    for (JValue item : json["handlers"].items()) {
+        Handler handler;
         handler.fromJson(item);
 
-        if (handler.getType() == HandlerType_Runtime)
+        if (handler.getType() != HandlerType_AppInfo) {
             registerHandler(handler);
+        }
     }
-    Logger::info(m_name, "Load runtime handlers");
+}
+
+bool HandlerManager::onInitialization()
+{
+    if (ConfigManager::getInstance().isTest()) {
+        loadConfig(ConfigManager::getInstance().getDebugDB());
+        Logger::info(m_name, "Load buildtime configurations");
+    }
+    loadConfig(ConfigManager::getInstance().getRuntimeDB());
+    Logger::info(m_name, "Load runtime configurations");
     return true;
 }
 
@@ -75,14 +61,30 @@ bool HandlerManager::onFinalization()
         }
     }
 
-    if (StorageManager::getInstance().get()["handlers"] != handlers) {
-        StorageManager::getInstance().get().put("handlers", handlers);
+    if (ConfigManager::getInstance().getRuntimeDB()["handlers"] != handlers) {
+        ConfigManager::getInstance().getRuntimeDB().put("handlers", handlers);
         Logger::info(m_name, "Save changed runtime handlers");
     }
     return true;
 }
 
-JValue HandlerManager::resolve(Intent intent)
+bool HandlerManager::launch(Intent& intent)
+{
+    deque<Handler>::iterator it;
+    it = find_if(m_handlers.begin(), m_handlers.end(),
+                 [&] (Handler& handler)
+                 {
+                    return handler.isMatched(intent);
+                 });
+    if (it == m_handlers.end()) {
+        return false;
+    }
+    Logger::info(m_name, it->getId(), "Launch target handler");
+    // TODO : Need to call SAM 'launch' API
+    return true;
+}
+
+JValue HandlerManager::resolve(Intent& intent)
 {
     deque<Handler> handlers;
     std::copy_if(m_handlers.begin(), m_handlers.end(), back_inserter(handlers),
@@ -96,6 +98,17 @@ JValue HandlerManager::resolve(Intent intent)
     for(unsigned i = 0; i < handlers.size(); i++) {
         JValue item = pbnjson::Object();
         handlers[i].toJson(item);
+        json.append(item);
+    }
+    return json;
+}
+
+JValue HandlerManager::getAllHandlers()
+{
+    JValue json = pbnjson::Array();
+    for(unsigned i = 0; i < m_handlers.size(); i++) {
+        JValue item = pbnjson::Object();
+        m_handlers[i].toJson(item);
         json.append(item);
     }
     return json;
@@ -135,7 +148,7 @@ bool HandlerManager::registerHandler(Handler& handler)
         return false;
     }
     if (hasHandler(handler.getId())) {
-        if (handler.getType() == HandlerType_BuiltIn) {
+        if (handler.getType() == HandlerType_AppInfo) {
             Logger::info(m_name, handler.getId(), "'runtime' handler is already registered");
             return true;
         }
@@ -154,6 +167,7 @@ bool HandlerManager::registerHandler(Handler& handler)
         }
     }
     m_handlers.push_back(handler);
+    Logger::info(m_name, handler.getId(), "Handler is registered");
     return true;
 }
 

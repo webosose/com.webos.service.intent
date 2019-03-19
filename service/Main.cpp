@@ -13,11 +13,11 @@
 
 #include <iostream>
 #include <glib.h>
+#include <manager/ConfigManager.h>
 
 #include "manager/ApplicationManager.h"
 #include "manager/HandlerManager.h"
 #include "manager/IntentManager.h"
-#include "manager/StorageManager.h"
 
 using namespace std;
 
@@ -37,7 +37,7 @@ int main()
     s_mainloop = g_main_loop_new(NULL, FALSE);
 
     // xxx: DON'T change initialization order.
-    StorageManager::getInstance().initialize(s_mainloop);
+    ConfigManager::getInstance().initialize(s_mainloop);
     HandlerManager::getInstance().initialize(s_mainloop);
     IntentManager::getInstance().initialize(s_mainloop);
     ApplicationManager::getInstance().initialize(s_mainloop);
@@ -48,7 +48,7 @@ int main()
     ApplicationManager::getInstance().finalize();
     IntentManager::getInstance().finalize();
     HandlerManager::getInstance().finalize();
-    StorageManager::getInstance().finalize();
+    ConfigManager::getInstance().finalize();
 
     g_main_loop_unref(s_mainloop);
 

@@ -52,6 +52,7 @@ set(LIBS
     ${LUNASERVICE2CPP_LDFLAGS}
     ${PBNJSON_C_LDFLAGS}
     ${PBNJSON_CPP_LDFLAGS}
+    network-uri
 )
 target_link_libraries(${BIN_NAME} ${LIBS})
 
