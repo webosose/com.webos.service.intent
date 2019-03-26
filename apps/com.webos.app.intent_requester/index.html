@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Intent Requester</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf8"/>
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+        <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-color: white;
+        }
+
+        .bg {
+            height: 100%;
+            margin-top: 100px;
+            text-align: center;
+            font-size: xx-large;
+        }
+        </style>
+    </head>
+    <script type="text/javascript" src="webOS.js"></script>
+    <script>
+        function launch() {
+            var text_action = document.getElementById("text_action").value;
+            var text_uri = document.getElementById("text_uri").value;
+            var text_mimetype = document.getElementById("text_mimetype").value;
+            var text_extra = document.getElementById("text_extra").value;
+            var checkbox_chooser = document.getElementById("checkbox_chooser").checked;
+
+            var request = webOS.service.request("luna://com.webos.service.intent/", {
+                method: "launch",
+                parameters: {  
+                    action: text_action,
+                    uri: text_uri,
+                    chooser: checkbox_chooser
+                },
+                onSuccess: function(inResponse) {  
+                    console.log(inResponse);
+                },
+                onComplete: function(inResponse) {  
+                    console.log(inResponse);
+                },
+                subscribe: false,
+                resubscribe: false
+            });
+        }
+    </script>
+    <body>
+    <div class="bg">
+        <label for="text_action">action</label>
+        <input type="text" id="text_action" value="action_test1">
+        <br>
+
+        <label for="text_uri">uri</label>
+        <input type="text" id="text_uri" value="http://com.webos.app.test">
+        <br>
+
+        <label for="text_mimetype">mimeType</label>
+        <input type="text" id="text_mimetype">
+        <br>
+
+        <label for="text_extra">extra</label>
+        <input type="text" id="text_extra">
+        <br>
+
+        <label for="checkbox_chooser">chooser</label>
+        <input type="checkbox" id="checkbox_chooser">
+        <br>
+
+        <button type="button" onclick="launch()">launch</button>
+    </div>
+    </body>
+</html>

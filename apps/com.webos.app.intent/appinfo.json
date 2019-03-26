@@ -1,0 +1,23 @@
+{
+    "id": "com.webos.app.intent",
+    "version": "1.0.0",
+    "type": "web",
+    "main": "index.html",
+    "title": "Intent Chooser",
+    "icon": "icon.png",
+    "uiRevision": 1,
+    "transparent": true,
+    "defaultWindowType": "overlay",
+    "visible": true,
+    "lockable": false,
+    "noSplashOnLaunch": true,
+    "disableBackHistoryAPI": true,
+    "supportQuickStart": false,
+    "trustLevel": "trusted",
+    "usePrerendering": true,
+    "v8SnapshotFile": "snapshot_blob.bin",
+    "intentFilter": {
+        "actions": ["action_chooser"],
+        "priority": 0
+     }
+}

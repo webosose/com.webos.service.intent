@@ -18,6 +18,7 @@
 
 #include <luna-service2/lunaservice.hpp>
 
+#include "core/Handler.h"
 #include "interface/IManageable.h"
 
 using namespace std;
@@ -31,7 +32,7 @@ public:
     virtual bool onFinalization() override;
     static bool onServerStatus(bool isConnected);
 
-    bool launch();
+    bool launch(Intent& intent, Handler& handler);
 
 private:
     ApplicationManager();

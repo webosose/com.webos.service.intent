@@ -1,0 +1,9 @@
+{
+    "handlers": [
+        {
+            "id": "com.webos.app.test_2",
+            "actions": ["action_test_2"],
+            "type": "appinfo"
+        }
+    ]
+}

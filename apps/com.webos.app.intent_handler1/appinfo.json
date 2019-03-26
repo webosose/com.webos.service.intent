@@ -1,0 +1,16 @@
+{
+  "id": "com.webos.app.intent_handler1",
+  "version": "1.0.0",
+  "vendor": "LG Electronics, Inc.",
+  "type": "web",
+  "main": "index.html",
+  "title": "Intent Handler 1",
+  "uiRevision": "1",
+  "miniicon": "icon.png",
+  "largeIcon": "icon.png",
+  "icon": "icon.png",
+  "intentFilter": {
+    "actions": ["action_test1"],
+    "priority": 1
+   }
+}

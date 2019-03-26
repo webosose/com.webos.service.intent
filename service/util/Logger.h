@@ -66,6 +66,7 @@ private:
 
     void write(const enum LogLevel level, const string& main, const string& sub, const string& msg);
     void writeConsole(const enum LogLevel& level, const string& log);
+    void writePmlog(const enum LogLevel& level, const string& log);
 
     enum LogLevel m_level;
     enum LogType m_type;

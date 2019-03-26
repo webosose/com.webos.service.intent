@@ -11,21 +11,31 @@
  * LICENSE@@@
  */
 
-#ifndef INTERFACE_ISERIALIZABLE_H_
-#define INTERFACE_ISERIALIZABLE_H_
+#ifndef INTERFACE_ICLASSNAME_H_
+#define INTERFACE_ICLASSNAME_H_
 
-#include <pbnjson.hpp>
+#include <iostream>
 
-using namespace pbnjson;
+using namespace std;
 
-class ISerializable {
+class IClassName {
 public:
-    ISerializable() {};
-    virtual ~ISerializable() {};
+    IClassName() : m_name("Unknown") {};
+    virtual ~IClassName() {};
 
-    virtual bool fromJson(const JValue& json) = 0;
-    virtual bool toJson(JValue& json) = 0;
+    string& getClassName()
+    {
+        return m_name;
+    }
+
+    void setClassName(string name)
+    {
+        m_name = name;
+    }
+
+private:
+    string m_name;
 
 };
 
-#endif /* INTERFACE_ISERIALIZABLE_H_ */
+#endif /* INTERFACE_ICLASSNAME_H_ */

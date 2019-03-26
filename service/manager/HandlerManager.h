@@ -46,6 +46,7 @@ private:
     virtual bool hasHandler(const string& id);
     virtual deque<Handler>::iterator findHandler(const string& id);
 
+    static Intent CHOOSER;
     deque<Handler> m_handlers;
 
 };

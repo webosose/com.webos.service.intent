@@ -13,7 +13,6 @@
 
 #include "Handler.h"
 
-
 string Handler::toString(enum HandlerType type)
 {
     switch(type) {
@@ -61,9 +60,19 @@ bool Handler::isMatched(const Intent& intent)
     if (!intent.checkAction()) {
         return false;
     }
-    if (!intent.checkUri()) {
-        return false;
+
+    // If 'id' is there, only 'id' is the key parameter
+    if (!intent.m_id.empty()) {
+        if (m_id == intent.m_id) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
+
+    if (getId() == intent.m_id)
+        return true;
 
     // check 'ACTION'
     deque<string>::iterator i;
@@ -79,12 +88,15 @@ bool Handler::isMatched(const Intent& intent)
         string_view path = intent.getUri().path();
         deque<uri>::iterator j;
         j = find_if(m_uris.begin(), m_uris.end(),
-                    [&] (const uri& u) {
-                            // TODO check path & regex
-                            cout << "intent schema - " << schema << endl;
-                            cout << "handler schema - " << u.scheme() << endl;
-                            return u.scheme() == schema;
-                     });
+                    [&] (const uri& u)
+                    {
+                        cout << u.string() << endl;
+                        if (u.scheme().compare(schema)) return false;
+                        cout << u.path() << endl;
+                        cout << path << endl;
+                        if (u.path().compare(path)) return false;
+                        return true;
+                    });
         if (j == m_uris.end()) {
             return false;
         }
@@ -107,26 +119,40 @@ bool Handler::fromJson(const JValue& json)
     if (json.hasKey("id") && json["id"].isString()) {
         m_id = json["id"].asString();
     }
+
     if (json.hasKey("priority") && json["priority"].isNumber()) {
         m_priority = json["priority"].asNumber<int>();
     }
-    if (json.hasKey("actions") && json["actions"].isArray()) {
-        for (JValue action : json["actions"].items()) {
+
+    if (json.hasKey("type") && json["type"].isString()) {
+        m_type = toEnum(json["type"].asString());
+    }
+
+    JValue array = pbnjson::Array();
+    getUniqueArray(json["actions"], array);
+    if (array.arraySize() > 0) {
+        m_actions.clear();
+        for (JValue action : array.items()) {
             m_actions.push_back(action.asString());
         }
     }
-    if (json.hasKey("mimeTypes") && json["mimeTypes"].isArray()) {
-        for (JValue mimeType : json["mimeTypes"].items()) {
+
+    array = pbnjson::Array();
+    getUniqueArray(json["mimeTypes"], array);
+    if (array.arraySize() > 0) {
+        m_mimeTypes.clear();
+        for (JValue mimeType : array.items()) {
             m_mimeTypes.push_back(mimeType.asString());
         }
     }
-    if (json.hasKey("uris") && json["uris"].isArray()) {
-        for (JValue uri : json["uris"].items()) {
+
+    array = pbnjson::Array();
+    getUniqueArray(json["uris"], array);
+    if (array.arraySize() > 0) {
+        m_uris.clear();
+        for (JValue uri : array.items()) {
             m_uris.push_back(network::uri(uri.asString()));
         }
-    }
-    if (json.hasKey("type") && json["type"].isString()) {
-        m_type = toEnum(json["type"].asString());
     }
     return true;
 }
@@ -135,6 +161,7 @@ bool Handler::toJson(JValue& json)
 {
     json.put("id", m_id);
     json.put("priority", m_priority);
+    json.put("type", toString(m_type));
 
     JValue actions = pbnjson::Array();
     for (unsigned int i = 0; i < m_actions.size(); ++i) {
@@ -144,39 +171,29 @@ bool Handler::toJson(JValue& json)
 
     JValue mimeTypes = pbnjson::Array();
     for (unsigned int i = 0; i < m_mimeTypes.size(); ++i) {
-        actions.append(m_mimeTypes[i]);
+        mimeTypes.append(m_mimeTypes[i]);
     }
     json.put("mimeTypes", mimeTypes);
 
     JValue uris = pbnjson::Array();
     for (unsigned int i = 0; i < m_uris.size(); ++i) {
-        actions.append(m_uris[i].string());
+        uris.append(m_uris[i].string());
     }
     json.put("uris", uris);
-    json.put("type", toString(m_type));
+
     return true;
 }
 
-void Handler::printDebug()
+void Handler::getUniqueArray(const JValue& from, JValue& to)
 {
-    cout << "id : " << (m_id.empty() ? "NULL" : m_id) << endl;
-    cout << "priority : " << m_priority << endl;
+    map<string, bool> checker;
 
-    cout << "actions :" << (m_actions.size() ? " " : "empty");
-    for (unsigned int i = 0; i < m_actions.size(); ++i) {
-        cout << "[" << m_actions[i] << "]";
+    if (!from.isValid() || !from.isArray())
+        return;
+    for (JValue item : from.items()) {
+        if (checker.find(item.asString()) == checker.end()) {
+            checker[item.asString()] = true;
+            to.append(item);
+        }
     }
-    cout << endl;
-
-    cout << "mimeTypes :" << (m_mimeTypes.size() ? " " : "empty");
-    for (unsigned int i = 0; i < m_mimeTypes.size(); ++i) {
-        cout << "[" << m_mimeTypes[i] << "]";
-    }
-    cout << endl;
-
-    cout << "uris :" << (m_uris.size() ? " " : "empty");
-    for (unsigned int i = 0; i < m_uris.size(); ++i) {
-        cout << "[" << m_uris[i] << "]";
-    }
-    cout << endl;
 }

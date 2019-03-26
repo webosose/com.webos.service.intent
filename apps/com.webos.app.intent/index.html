@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Intent Requester</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf8"/>
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+        <style>
+        body, html {
+            height: 50%;
+            margin: 200px;
+            text-align: center;
+            font-size: xx-large;
+            background-color: rgba(100, 100, 100, 0.5);
+        }
+        button {
+             width: 40%;
+             height: 15%;
+        }
+        </style>
+    </head>
+    <script type="text/javascript" src="webOS.js"></script>
+    <script>
+        var launchParams = {};
+
+        function addHandler(value) {
+            // Create an input type dynamically.
+            var handler = document.createElement("BUTTON");
+            var br = document.createElement("BR");
+
+            // Assign different attributes to the element.
+            handler.innerHTML = value;
+            handler.onclick = function() {
+                launchParams.id = value;
+                var request = webOS.service.request("luna://com.webos.service.intent/", {
+                    method: "launch",
+                    parameters: launchParams,
+                    onSuccess: function(inResponse) {
+                        console.log(inResponse);
+                    },
+                    onFailure: function(inError) {  
+                        console.log(inError);
+                    },
+                    subscribe: false,
+                    resubscribe: false
+                });
+            };
+        
+            var handlers = document.getElementById("handlers");
+            handlers.appendChild(handler);
+            handlers.appendChild(br);
+        }
+
+        function updateBody() {
+            if (window.webOSSystem && window.webOSSystem.launchParams) {
+                launchParams = JSON.parse(window.webOSSystem.launchParams);
+            }
+
+            var request = webOS.service.request("luna://com.webos.service.intent/", {
+                method: "resolve",
+                parameters: launchParams,
+                onSuccess: function(inResponse) {
+                    for (var i = 0; i < inResponse.handlers.length; ++i) {
+                        addHandler(inResponse.handlers[i].id);
+                    }
+                },
+                onFailure: function(inError) {  
+                    console.log(inError);
+                },
+                subscribe: false,
+                resubscribe: false
+            });
+        }
+    </script>
+    <body onload="updateBody()">
+    <div id="handlers">
+    </div>
+    </body>
+</html>

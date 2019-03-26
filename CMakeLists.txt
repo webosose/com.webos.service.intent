@@ -22,6 +22,7 @@ include(webOS/webOS)
 webos_modules_init(1 1 1 QUALIFIER RC4)
 webos_component(1 0 0)
 
+add_subdirectory(files)
 add_subdirectory(service)
 
 # Install

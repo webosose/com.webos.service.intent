@@ -1,0 +1,5 @@
+{
+    "com.webos.app.intent_requester-*": [
+        "intent", "intent.requester", "intent.handler", "intent.manager"
+    ]
+}

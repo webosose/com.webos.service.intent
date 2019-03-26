@@ -18,11 +18,12 @@
 #include <network/uri.hpp>
 
 #include "interface/ISerializable.h"
+#include "interface/IClassName.h"
 
 using namespace std;
 using namespace network;
 
-class Intent : public ISerializable {
+class Intent : public ISerializable, public IClassName {
 friend class Handler;
 public:
     Intent();
@@ -30,7 +31,6 @@ public:
 
     virtual bool fromJson(const JValue& json) override;
     virtual bool toJson(JValue& json) override;
-    virtual void printDebug() override;
 
     virtual bool checkAction() const
     {
@@ -44,9 +44,29 @@ public:
         return true;
     }
 
+    const void setId(const string& id)
+    {
+        m_id = id;
+    }
+
+    const string& getId()
+    {
+        return m_id;
+    }
+
+    const void setRequester(const string& requester)
+    {
+        m_requester = requester;
+    }
+
     const string& getRequester()
     {
         return m_requester;
+    }
+
+    const void setAction(const string& action)
+    {
+        m_action = action;
     }
 
     const string& getAction()
@@ -74,13 +94,22 @@ public:
         return m_result;
     }
 
+    const bool chooser()
+    {
+        return m_chooser;
+    }
+
 private:
+    string m_id;
     string m_requester;
     string m_action;
-    uri m_uri;
     string m_mimeType;
-    JValue m_extra;
     string m_result;
+
+    uri m_uri;
+    JValue m_extra;
+
+    bool m_chooser;
 };
 
 #endif /* CORE_INTENT_H_ */

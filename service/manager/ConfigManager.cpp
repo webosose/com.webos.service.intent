@@ -24,17 +24,24 @@ ConfigManager::ConfigManager()
     : m_isTest(false)
     , m_isVerbose(false)
 {
-    setName("ConfigManager");
+    setClassName("ConfigManager");
 
     const char* test = std::getenv("TEST");
+    const char* testfile = std::getenv("TESTFILE");
     const char* verbose = std::getenv("VERBOSE");
 
     if (test && strcmp(test, "true") == 0) {
-        m_isTest = true;
+        m_debugDB = JDomParser::fromFile(testfile);
+        if (!m_debugDB.isNull()) {
+            m_isTest = true;
+        } else {
+            Logger::error(getClassName(), "The test file is empty.");
+            m_debugDB = pbnjson::Object();
+        }
     }
     if (verbose && strcmp(verbose, "true") == 0) {
-        m_isVerbose = true;
         Logger::getInstance().setLevel(LogLevel_VERBOSE);
+        m_isVerbose = true;
     }
 }
 
@@ -44,17 +51,12 @@ ConfigManager::~ConfigManager()
 
 bool ConfigManager::onInitialization()
 {
-    m_debugDB = JDomParser::fromFile(DEBUG_DB_PATH.c_str());
-    if (m_debugDB.isNull()) {
-        Logger::info(m_name, "The buildtime file is empty.");
-        m_debugDB = pbnjson::Object();
-    }
-
     m_runtimeDB = JDomParser::fromFile(RUNTIME_DB_PATH.c_str());
     if (m_runtimeDB.isNull()) {
-        Logger::info(m_name, "The runtime file is empty. Try to initialize the database");
+        Logger::info(getClassName(), "The runtime file is empty. Try to initialize the database");
         m_runtimeDB = pbnjson::Object();
     }
+    ready();
     return true;
 }
 
@@ -78,10 +80,10 @@ void ConfigManager::syncRuntime()
 {
     ofstream out(RUNTIME_DB_PATH.c_str());
     if (!out.is_open()) {
-        Logger::error(m_name, "Failed to open database file");
+        Logger::error(getClassName(), "Failed to open database file");
         return;
     }
-    Logger::info(m_name, "database is syncronized");
+    Logger::info(getClassName(), "database is syncronized");
     out << m_runtimeDB.stringify("    ");
     out.close();
 }

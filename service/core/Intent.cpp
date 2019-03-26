@@ -13,13 +13,17 @@
 
 #include "Intent.h"
 
+#include "util/Logger.h"
+
 Intent::Intent()
     : m_requester("")
     , m_action("")
-    , m_uri("")
     , m_mimeType("")
     , m_result("")
+    , m_uri("")
+    , m_chooser(false)
 {
+    setClassName("Intent");
     m_extra = pbnjson::Object();
 }
 
@@ -30,14 +34,14 @@ Intent::~Intent()
 
 bool Intent::fromJson(const JValue& json)
 {
+    if (json.hasKey("id") && json["id"].isString()) {
+        m_id = json["id"].asString();
+    }
     if (json.hasKey("requester") && json["requester"].isString()) {
         m_requester = json["requester"].asString();
     }
     if (json.hasKey("action") && json["action"].isString()) {
         m_action = json["action"].asString();
-    }
-    if (json.hasKey("uri") && json["uri"].isString()) {
-        m_uri = uri(json["uri"].asString());
     }
     if (json.hasKey("mimeType") && json["mimeType"].isString()) {
         m_mimeType = json["mimeType"].asString();
@@ -48,11 +52,24 @@ bool Intent::fromJson(const JValue& json)
     if (json.hasKey("extra") && json["extra"].isObject()) {
         m_extra = json["extra"].duplicate();
     }
+    if (json.hasKey("chooser") && json["chooser"].isBoolean()) {
+        m_chooser = json["chooser"].asBool();
+    }
+
+    try {
+        if (json.hasKey("uri") && json["uri"].isString()) {
+            m_uri = uri(json["uri"].asString());
+        }
+    } catch (network::uri_syntax_error& ex) {
+        Logger::warning(getClassName(), ex.what());
+        return false;
+    }
     return true;
 }
 
 bool Intent::toJson(JValue& json)
 {
+    json.put("id", m_id);
     json.put("requester", m_requester);
     json.put("action", m_action);
     json.put("uri", m_uri.string());
@@ -60,14 +77,4 @@ bool Intent::toJson(JValue& json)
     json.put("result", m_result);
     json.put("extra", m_extra.duplicate());
     return true;
-}
-
-void Intent::printDebug()
-{
-    cout << "requester : " << (m_requester.empty() ? "NULL" : m_requester) << endl;
-    cout << "action : " << (m_action.empty() ? "NULL" : m_action) << endl;
-    cout << "uri : " << (m_uri.empty() ? "NULL" : m_uri.string()) << endl;
-    cout << "mimeType : " << (m_mimeType.empty() ? "NULL" : m_mimeType) << endl;
-    cout << "result : " << (m_result.empty() ? "NULL" : m_result) << endl;
-    cout << "extra : " << (m_extra.objectSize() == 0 ? "NULL" : m_extra.stringify("    ")) << endl;
 }

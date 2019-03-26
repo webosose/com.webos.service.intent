@@ -11,16 +11,21 @@
  * LICENSE@@@
  */
 
-#include "ConfigManager.h"
 #include "HandlerManager.h"
 
 #include <algorithm>
 
+#include "ApplicationManager.h"
+#include "IntentManager.h"
+#include "ConfigManager.h"
 #include "util/Logger.h"
+
+Intent HandlerManager::CHOOSER;
 
 HandlerManager::HandlerManager()
 {
-    setName("HanderManager");
+    setClassName("HanderManager");
+    CHOOSER.setAction("action_chooser");
 }
 
 HandlerManager::~HandlerManager()
@@ -33,9 +38,7 @@ void HandlerManager::loadConfig(const JValue& json)
         Handler handler;
         handler.fromJson(item);
 
-        if (handler.getType() != HandlerType_AppInfo) {
-            registerHandler(handler);
-        }
+        registerHandler(handler);
     }
 }
 
@@ -43,10 +46,11 @@ bool HandlerManager::onInitialization()
 {
     if (ConfigManager::getInstance().isTest()) {
         loadConfig(ConfigManager::getInstance().getDebugDB());
-        Logger::info(m_name, "Load buildtime configurations");
+        Logger::info(getClassName(), "Load debug configurations");
     }
     loadConfig(ConfigManager::getInstance().getRuntimeDB());
-    Logger::info(m_name, "Load runtime configurations");
+    Logger::info(getClassName(), "Load runtime configurations");
+    ready();
     return true;
 }
 
@@ -63,24 +67,30 @@ bool HandlerManager::onFinalization()
 
     if (ConfigManager::getInstance().getRuntimeDB()["handlers"] != handlers) {
         ConfigManager::getInstance().getRuntimeDB().put("handlers", handlers);
-        Logger::info(m_name, "Save changed runtime handlers");
+        Logger::info(getClassName(), "Save changed runtime handlers");
     }
     return true;
 }
 
 bool HandlerManager::launch(Intent& intent)
 {
+    Intent *targetIntent = nullptr;
+    if (intent.chooser()) {
+        targetIntent = &CHOOSER;
+    } else {
+        targetIntent = &intent;
+    }
     deque<Handler>::iterator it;
     it = find_if(m_handlers.begin(), m_handlers.end(),
                  [&] (Handler& handler)
                  {
-                    return handler.isMatched(intent);
+                    return handler.isMatched(*targetIntent);
                  });
     if (it == m_handlers.end()) {
         return false;
     }
-    Logger::info(m_name, it->getId(), "Launch target handler");
-    // TODO : Need to call SAM 'launch' API
+    Logger::info(getClassName(), it->getId(), "Launch target handler");
+    ApplicationManager::getInstance().launch(intent, *it);
     return true;
 }
 
@@ -129,34 +139,39 @@ bool HandlerManager::setHandler(Handler& handler)
 {
     deque<Handler>::iterator it = findHandler(handler.getId());
     if (it == m_handlers.end()) {
-        Logger::warning(m_name, handler.getId(), "Cannot find handler");
+        Logger::warning(getClassName(), handler.getId(), "Cannot find handler");
         return false;
     }
 
-    // Currently, setHandler API overwrites all internal information
-    JValue json = pbnjson::Object();
-    handler.toJson(json);
-    handler.setType(HandlerType_Runtime);
-    it->fromJson(json);
+    if (it->getType() != handler.getType()) {
+        Logger::warning(getClassName(), handler.getId(), "Cannot overwrite existing handler");
+        return false;
+    }
+
+    *it = handler;
     return true;
 }
 
 bool HandlerManager::registerHandler(Handler& handler)
 {
     if (handler.getId().empty()) {
-        Logger::warning(m_name, "Id is null");
+        Logger::warning(getClassName(), "Id is null");
+        return false;
+    }
+    if (handler.getType() == HandlerType_Unknown) {
+        Logger::warning(getClassName(), "Type should not be unknown");
         return false;
     }
     if (hasHandler(handler.getId())) {
         if (handler.getType() == HandlerType_AppInfo) {
-            Logger::info(m_name, handler.getId(), "'runtime' handler is already registered");
+            Logger::info(getClassName(), handler.getId(), "'runtime' handler is already registered");
             return true;
         }
-        Logger::warning(m_name, handler.getId(), "Same Id is already registered.");
+        Logger::warning(getClassName(), handler.getId(), "Same Id is already registered.");
         return false;
     }
     if (handler.getActions().size() == 0) {
-        Logger::warning(m_name, handler.getId(), "'Actions' is required parameter for registration");
+        Logger::warning(getClassName(), handler.getId(), "'Actions' is required parameter for registration");
         return false;
     }
 
@@ -167,22 +182,25 @@ bool HandlerManager::registerHandler(Handler& handler)
         }
     }
     m_handlers.push_back(handler);
-    Logger::info(m_name, handler.getId(), "Handler is registered");
+    Logger::info(getClassName(), handler.getId(), "Handler is registered");
     return true;
 }
 
 bool HandlerManager::unregisterHandler(Handler& handler)
 {
     if (handler.getId().empty()) {
-        Logger::warning(m_name, "Id is null");
+        Logger::warning(getClassName(), "Id is null");
         return false;
     }
     deque<Handler>::iterator it = findHandler(handler.getId());
     if (it == m_handlers.end()) {
-        Logger::info(m_name, handler.getId(), "The Id is not registered");
+        Logger::info(getClassName(), handler.getId(), "The Id is not registered");
         return false;
     }
-
+    if (it->getType() == HandlerType_AppInfo) {
+        Logger::warning(getClassName(), handler.getId(), "Cannot unregister appinfo handler");
+        return false;
+    }
     m_handlers.erase(it);
     return true;
 }

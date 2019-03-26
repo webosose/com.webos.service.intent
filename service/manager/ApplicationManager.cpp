@@ -20,7 +20,7 @@
 
 ApplicationManager::ApplicationManager()
 {
-    setName("ApplicationManager");
+    setClassName("ApplicationManager");
 }
 
 ApplicationManager::~ApplicationManager()
@@ -50,8 +50,30 @@ bool ApplicationManager::onServerStatus(bool isConnected)
     return true;
 }
 
-bool ApplicationManager::launch()
+bool ApplicationManager::launch(Intent& intent, Handler& handler)
 {
+    static const string API = "luna://com.webos.service.applicationmanager/launch";
+    pbnjson::JValue requestPayload = pbnjson::Object();
+    requestPayload.put("id", handler.getId());
+
+    pbnjson::JValue params = pbnjson::Object();
+    params.put("requester", intent.getRequester());
+    params.put("action", intent.getAction());
+    params.put("uri", intent.getUri().string());
+    if (!intent.getExtra().isNull())
+        params.put("extra", intent.getExtra());
+    requestPayload.put("params", params);
+
+    try {
+        auto call = IntentManager::getInstance().callOneReply(
+            API.c_str(),
+            requestPayload.stringify().c_str()
+        );
+        auto reply = call.get(5000);
+    }
+    catch (const LS::Error &e) {
+        Logger::error(getClassName(), e.what());
+    }
     return true;
 }
 
@@ -60,30 +82,40 @@ bool ApplicationManager::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
     Message response(reply);
     pbnjson::JValue responsePayload = JDomParser::fromString(response.getPayload());
 
-    Logger::info(ApplicationManager::getInstance().m_name, "Return", "listApps");
+    Logger::info(ApplicationManager::getInstance().getClassName(), "Return", "listApps");
     if (response.isHubError() || !responsePayload["returnValue"].asBool()) {
-        Logger::error(ApplicationManager::getInstance().m_name, std::string(response.getPayload()));
+        Logger::error(ApplicationManager::getInstance().getClassName(), std::string(response.getPayload()));
         return false;
     }
 
     if (!responsePayload.hasKey("apps") || !responsePayload["apps"].isArray() || responsePayload["apps"].arraySize() <= 0) {
-        Logger::error(ApplicationManager::getInstance().m_name, response.getPayload());
+        Logger::error(ApplicationManager::getInstance().getClassName(), response.getPayload());
         return false;
     }
 
     string id;
     for (JValue application : responsePayload["apps"].items()) {
-        if (!application.hasKey("intentFilter")) continue;
-        if (!application.hasKey("id")) continue;
-        if (application["id"].asString(id) != CONV_OK) continue;
+        if (!application.hasKey("id") || application["id"].asString(id) != CONV_OK) {
+            Logger::warning(ApplicationManager::getInstance().getClassName(), "'id' is empty");
+            continue;
+        }
+        if (!application.hasKey("intentFilter")) {
+            Logger::verbose(ApplicationManager::getInstance().getClassName(), id, "'intentFilter' is null");
+            continue;
+        }
 
         Handler handler;
         handler.fromJson(application["intentFilter"]);
         handler.setId(application["id"].asString());
         handler.setType(HandlerType_AppInfo);
         if (!HandlerManager::getInstance().registerHandler(handler)) {
-            Logger::error(ApplicationManager::getInstance().m_name, handler.getId(), "Failed to register handler");
+            Logger::error(ApplicationManager::getInstance().getClassName(), handler.getId(), "Failed to register handler");
         }
+    }
+
+    // Ready when first *running* subscription.
+    if (!ApplicationManager::getInstance().isReady()) {
+        ApplicationManager::getInstance().ready();
     }
     return true;
 }
@@ -99,10 +131,10 @@ void ApplicationManager::listApps()
             API.c_str(),
             requestPayload.stringify().c_str()
         );
-        Logger::debug(m_name, "Call", "listApps");
+        Logger::debug(getClassName(), "Call", "listApps");
         m_listApps.continueWith(_listApps, this);
     }
     catch (const LS::Error &e) {
-        Logger::error(m_name, e.what());
+        Logger::error(getClassName(), e.what());
     }
 }

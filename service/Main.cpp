@@ -21,7 +21,6 @@
 
 using namespace std;
 
-
 static GMainLoop *s_mainloop;
 
 void exitDaemon(int signo)
@@ -42,6 +41,10 @@ int main()
     IntentManager::getInstance().initialize(s_mainloop);
     ApplicationManager::getInstance().initialize(s_mainloop);
 
+    // waiting all manager ready
+    g_main_context_iteration(NULL, true);
+
+    // start LS2 API handling
     g_main_loop_run(s_mainloop);
 
     // xxx: DON'T change finalize order.

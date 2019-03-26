@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <deque>
+#include <map>
 #include <network/uri.hpp>
 
 #include "interface/ISerializable.h"
@@ -41,9 +42,9 @@ public:
     virtual bool launch(Intent intent);
     virtual bool isMatched(const Intent& intent);
 
+    // ISerializable
     virtual bool fromJson(const JValue& json) override;
     virtual bool toJson(JValue& json) override;
-    virtual void printDebug() override;
 
     void setId(string id)
     {
@@ -86,6 +87,8 @@ public:
     }
 
 private:
+    static void getUniqueArray(const JValue& from, JValue& to);
+
     string m_id;
     int m_priority;
 

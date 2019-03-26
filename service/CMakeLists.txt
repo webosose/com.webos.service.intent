@@ -58,5 +58,3 @@ target_link_libraries(${BIN_NAME} ${LIBS})
 
 # Install
 install(TARGETS ${BIN_NAME} DESTINATION ${WEBOS_INSTALL_SBINDIR})
-webos_build_configured_file(files/launch/com.webos.service.intent.service SYSCONFDIR systemd/system/webos-cbd.target.wants)
-webos_build_configured_file(files/conf/com.webos.service.intent.json WEBOS_SYSCONFDIR "")

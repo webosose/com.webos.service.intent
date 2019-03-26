@@ -1,0 +1,18 @@
+{
+    "handlers": [
+        {
+            "id": "com.webos.app.test_3",
+            "actions": ["action_test_1", "action_test_1"],
+            "mimeTypes": ["test/test1", "test/test1"],
+            "uris": ["http://test1", "http://test1"],
+            "type": "runtime"
+        },
+        {
+            "id": "com.webos.app.test_4",
+            "actions": ["action_test_1", "action_test_2", "action_test_1"],
+            "mimeTypes": ["test/test1", "test/test2", "test/test1"],
+            "uris": ["http://test1", "http://test2", "http://test1"],
+            "type": "appinfo"
+        }
+    ]
+}

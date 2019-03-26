@@ -1,0 +1,15 @@
+{
+    "appId": "com.webos.app.intent_requester",
+    "type": "regular",
+    "allowedNames": [
+        "com.webos.app.intent_requester-*"
+    ],
+    "permissions": [
+        {
+            "service": "com.webos.app.intent_requester-*",
+            "outbound": [
+                "*"
+            ]
+        }
+    ]
+}

@@ -29,11 +29,15 @@ using namespace pbnjson;
 class IntentManager : public Handle, public IManageable<IntentManager> {
 friend class IManageable<IntentManager>;
 public:
+    static void writelog(LS::Message& request, const string& type, JValue& payload);
+
     virtual ~IntentManager();
 
+    // IManageable
     virtual bool onInitialization() override;
     virtual bool onFinalization() override;
 
+    // APIs
     void launch(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
     void finish(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
     void resolve(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
@@ -42,18 +46,21 @@ public:
     void registerHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
     void unregisterHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
 
-private:
     static const string NAME;
-    static const LSMethod METHODS[];
 
-    queue<LS::Message> m_requests;
-
+private:
     static bool onRequest(LSHandle* sh, LSMessage* msg, void* category_context);
+    static gboolean onRequest(gpointer user_data);
 
     static void pre(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
     static void post(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
 
     IntentManager();
+
+    static const LSMethod METHODS[];
+
+    queue<LS::Message> m_requests;
+
 };
 
 #endif /* MANAGER_INTENTMANAGER_H_ */
