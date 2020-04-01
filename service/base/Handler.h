@@ -1,29 +1,31 @@
-/* @@@LICENSE
- *
- * Copyright (c) 2019 LG Electronics, Inc.
- *
- * Confidential computer software. Valid license from LG required for
- * possession, use or copying. Consistent with FAR 12.211 and 12.212,
- * Commercial Computer Software, Computer Software Documentation, and
- * Technical Data for Commercial Items are licensed to the U.S. Government
- * under vendor's standard commercial license.
- *
- * LICENSE@@@
- */
+// Copyright (c) 2020 LG Electronics, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// SPDX-License-Identifier: Apache-2.0
 
-#ifndef CORE_HANDLER_H_
-#define CORE_HANDLER_H_
+#ifndef BASE_HANDLER_H_
+#define BASE_HANDLER_H_
 
+#include <base/Intent.h>
+#include <base/URI.h>
 #include <iostream>
 #include <deque>
 #include <map>
-#include <network/uri.hpp>
 
 #include "interface/ISerializable.h"
-#include "core/Intent.h"
 
 using namespace std;
-using namespace network;
 
 enum HandlerType {
     HandlerType_Unknown,
@@ -71,7 +73,7 @@ public:
         return m_mimeTypes;
     }
 
-    const deque<uri>& getUris()
+    const deque<URI>& getUris()
     {
         return m_uris;
     }
@@ -94,9 +96,9 @@ private:
 
     deque<string> m_actions;
     deque<string> m_mimeTypes;
-    deque<uri> m_uris;
+    deque<URI> m_uris;
 
     enum HandlerType m_type;
 };
 
-#endif /* CORE_HANDLER_H_ */
+#endif /* BASE_HANDLER_H_ */

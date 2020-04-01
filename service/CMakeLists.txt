@@ -1,4 +1,4 @@
-# Copyright (c) 2019 LG Electronics, Inc.
+# Copyright (c) 2020 LG Electronics, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@ include(FindPkgConfig)
 pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 include_directories(${GLIB2_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${GLIB2_CFLAGS_OTHER})
+
+#find_package(Boost REQUIRED COMPONENTS networking)
+#include_directories(${Boost_INCLUDE_DIRS})
+#webos_add_compiler_flags(ALL ${Boost_CFLAGS_OTHER})
 
 pkg_check_modules(LUNASERVICE2 REQUIRED luna-service2)
 include_directories(${LUNASERVICE2_INCLUDE_DIRS})

@@ -1,19 +1,22 @@
-/* @@@LICENSE
- *
- * Copyright (c) 2019 LG Electronics, Inc.
- *
- * Confidential computer software. Valid license from LG required for
- * possession, use or copying. Consistent with FAR 12.211 and 12.212,
- * Commercial Computer Software, Computer Software Documentation, and
- * Technical Data for Commercial Items are licensed to the U.S. Government
- * under vendor's standard commercial license.
- *
- * LICENSE@@@
- */
+// Copyright (c) 2020 LG Electronics, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// SPDX-License-Identifier: Apache-2.0
 
+#include <base/Handler.h>
 #include "ApplicationManager.h"
 
-#include "core/Handler.h"
 #include "manager/IntentManager.h"
 #include "manager/HandlerManager.h"
 #include "util/Logger.h"
@@ -59,7 +62,7 @@ bool ApplicationManager::launch(Intent& intent, Handler& handler)
     pbnjson::JValue params = pbnjson::Object();
     params.put("requester", intent.getRequester());
     params.put("action", intent.getAction());
-    params.put("uri", intent.getUri().string());
+    params.put("uri", intent.getUri().toString());
     if (!intent.getExtra().isNull())
         params.put("extra", intent.getExtra());
     requestPayload.put("params", params);
@@ -72,7 +75,7 @@ bool ApplicationManager::launch(Intent& intent, Handler& handler)
         auto reply = call.get(5000);
     }
     catch (const LS::Error &e) {
-        Logger::error(getClassName(), e.what());
+        Logger::error(getClassName(), __FUNCTION__, e.what());
     }
     return true;
 }
@@ -84,23 +87,23 @@ bool ApplicationManager::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
 
     Logger::info(ApplicationManager::getInstance().getClassName(), "Return", "listApps");
     if (response.isHubError() || !responsePayload["returnValue"].asBool()) {
-        Logger::error(ApplicationManager::getInstance().getClassName(), std::string(response.getPayload()));
+        Logger::error(ApplicationManager::getInstance().getClassName(), __FUNCTION__, std::string(response.getPayload()));
         return false;
     }
 
     if (!responsePayload.hasKey("apps") || !responsePayload["apps"].isArray() || responsePayload["apps"].arraySize() <= 0) {
-        Logger::error(ApplicationManager::getInstance().getClassName(), response.getPayload());
+        Logger::error(ApplicationManager::getInstance().getClassName(), __FUNCTION__, response.getPayload());
         return false;
     }
 
     string id;
     for (JValue application : responsePayload["apps"].items()) {
         if (!application.hasKey("id") || application["id"].asString(id) != CONV_OK) {
-            Logger::warning(ApplicationManager::getInstance().getClassName(), "'id' is empty");
+            Logger::warning(ApplicationManager::getInstance().getClassName(), __FUNCTION__, "'id' is empty");
             continue;
         }
         if (!application.hasKey("intentFilter")) {
-            Logger::verbose(ApplicationManager::getInstance().getClassName(), id, "'intentFilter' is null");
+            Logger::debug(ApplicationManager::getInstance().getClassName(), __FUNCTION__, "'intentFilter' is null");
             continue;
         }
 
@@ -135,6 +138,6 @@ void ApplicationManager::listApps()
         m_listApps.continueWith(_listApps, this);
     }
     catch (const LS::Error &e) {
-        Logger::error(getClassName(), e.what());
+        Logger::error(getClassName(), __FUNCTION__, e.what());
     }
 }

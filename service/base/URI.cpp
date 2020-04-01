@@ -14,32 +14,52 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Time.h"
+#include <base/URI.h>
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/lexical_cast.hpp>
-#include <time.h>
-
-Time::Time()
+URI::URI()
 {
 }
 
-Time::~Time()
+URI::URI(const string& str)
+{
+
+}
+
+URI::~URI()
 {
 }
 
-long long Time::getCurrentTime()
+bool URI::empty()
 {
-    timespec now;
-    if (clock_gettime(CLOCK_MONOTONIC, &now) == -1)
-        return -1;
-    return (now.tv_sec * 1000) + (now.tv_nsec / 1000000);
+    return true;
 }
 
-string Time::generateUid()
+string& URI::scheme()
 {
-    boost::uuids::uuid uid = boost::uuids::random_generator()();
-    return string(boost::lexical_cast<string>(uid));
+    return m_str;
+}
+
+string& URI::path()
+{
+    return m_str;
+}
+
+const string& URI::toString() const
+{
+    return m_str;
+}
+
+bool URI::fromString(const string& str)
+{
+    return true;
+}
+
+bool URI::fromJson(const JValue& json)
+{
+    return true;
+}
+
+bool URI::toJson(JValue& json)
+{
+    return true;
 }

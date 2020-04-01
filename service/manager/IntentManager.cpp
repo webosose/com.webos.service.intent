@@ -1,22 +1,25 @@
-/* @@@LICENSE
- *
- * Copyright (c) 2019 LG Electronics, Inc.
- *
- * Confidential computer software. Valid license from LG required for
- * possession, use or copying. Consistent with FAR 12.211 and 12.212,
- * Commercial Computer Software, Computer Software Documentation, and
- * Technical Data for Commercial Items are licensed to the U.S. Government
- * under vendor's standard commercial license.
- *
- * LICENSE@@@
- */
+// Copyright (c) 2020 LG Electronics, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// SPDX-License-Identifier: Apache-2.0
 
+#include <base/Handler.h>
+#include <base/Intent.h>
 #include "IntentManager.h"
 
 #include <lunaservice.h>
 
-#include "core/Intent.h"
-#include "core/Handler.h"
 #include "manager/ApplicationManager.h"
 #include "manager/ConfigManager.h"
 #include "manager/HandlerManager.h"
@@ -213,19 +216,19 @@ gboolean IntentManager::onRequest(gpointer user_data)
     }
     bool isReady = true;
     if (!ApplicationManager::getInstance().isReady()) {
-        Logger::warning(IntentManager::getInstance().getClassName(), "ApplicationManager is not ready");
+        Logger::warning(IntentManager::getInstance().getClassName(), __FUNCTION__, "ApplicationManager is not ready");
         isReady = false;
     }
     if (!ConfigManager::getInstance().isReady()) {
-        Logger::warning(IntentManager::getInstance().getClassName(), "ConfigManager is not ready");
+        Logger::warning(IntentManager::getInstance().getClassName(), __FUNCTION__, "ConfigManager is not ready");
         isReady = false;
     }
     if (!HandlerManager::getInstance().isReady()) {
-        Logger::warning(IntentManager::getInstance().getClassName(), "HandlerManager is not ready");
+        Logger::warning(IntentManager::getInstance().getClassName(), __FUNCTION__, "HandlerManager is not ready");
         isReady = false;
     }
     if (!IntentManager::getInstance().isReady()) {
-        Logger::warning(IntentManager::getInstance().getClassName(), "IntentManager is not ready");
+        Logger::warning(IntentManager::getInstance().getClassName(), __FUNCTION__, "IntentManager is not ready");
         isReady = false;
     }
     if (!isReady) {
@@ -284,7 +287,7 @@ void IntentManager::pre(LS::Message& request, JValue& requestPayload, JValue& re
 void IntentManager::post(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
 {
     if (responsePayload.hasKey("errorText")) {
-        Logger::warning(NAME, responsePayload["errorText"].asString());
+        Logger::warning(NAME, __FUNCTION__, responsePayload["errorText"].asString());
         responsePayload.put("returnValue", false);
     }
     if (!responsePayload.hasKey("returnValue")) {

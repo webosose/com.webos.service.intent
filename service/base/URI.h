@@ -14,32 +14,34 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Time.h"
+#ifndef BASE_URI_H_
+#define BASE_URI_H_
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/lexical_cast.hpp>
-#include <time.h>
+#include <iostream>
+#include <uriparser/Uri.h>
 
-Time::Time()
-{
-}
+#include "interface/ISerializable.h"
 
-Time::~Time()
-{
-}
+using namespace std;
 
-long long Time::getCurrentTime()
-{
-    timespec now;
-    if (clock_gettime(CLOCK_MONOTONIC, &now) == -1)
-        return -1;
-    return (now.tv_sec * 1000) + (now.tv_nsec / 1000000);
-}
+class URI : public ISerializable {
+public:
+    URI();
+    URI(const string& str);
+    virtual ~URI();
 
-string Time::generateUid()
-{
-    boost::uuids::uuid uid = boost::uuids::random_generator()();
-    return string(boost::lexical_cast<string>(uid));
-}
+    bool empty();
+
+    string& scheme();
+    string& path();
+    const string& toString() const;
+
+    virtual bool fromString(const string& str);
+    virtual bool fromJson(const JValue& json);
+    virtual bool toJson(JValue& json);
+
+private:
+    string m_str;
+};
+
+#endif /* BASE_URI_H_ */

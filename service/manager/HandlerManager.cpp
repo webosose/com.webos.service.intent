@@ -1,15 +1,18 @@
-/* @@@LICENSE
- *
- * Copyright (c) 2019 LG Electronics, Inc.
- *
- * Confidential computer software. Valid license from LG required for
- * possession, use or copying. Consistent with FAR 12.211 and 12.212,
- * Commercial Computer Software, Computer Software Documentation, and
- * Technical Data for Commercial Items are licensed to the U.S. Government
- * under vendor's standard commercial license.
- *
- * LICENSE@@@
- */
+// Copyright (c) 2020 LG Electronics, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// SPDX-License-Identifier: Apache-2.0
 
 #include "HandlerManager.h"
 
@@ -46,10 +49,10 @@ bool HandlerManager::onInitialization()
 {
     if (ConfigManager::getInstance().isTest()) {
         loadConfig(ConfigManager::getInstance().getDebugDB());
-        Logger::info(getClassName(), "Load debug configurations");
+        Logger::info(getClassName(), __FUNCTION__, "Load debug configurations");
     }
     loadConfig(ConfigManager::getInstance().getRuntimeDB());
-    Logger::info(getClassName(), "Load runtime configurations");
+    Logger::info(getClassName(), __FUNCTION__, "Load runtime configurations");
     ready();
     return true;
 }
@@ -67,7 +70,7 @@ bool HandlerManager::onFinalization()
 
     if (ConfigManager::getInstance().getRuntimeDB()["handlers"] != handlers) {
         ConfigManager::getInstance().getRuntimeDB().put("handlers", handlers);
-        Logger::info(getClassName(), "Save changed runtime handlers");
+        Logger::info(getClassName(), __FUNCTION__, "Save changed runtime handlers");
     }
     return true;
 }
@@ -155,11 +158,11 @@ bool HandlerManager::setHandler(Handler& handler)
 bool HandlerManager::registerHandler(Handler& handler)
 {
     if (handler.getId().empty()) {
-        Logger::warning(getClassName(), "Id is null");
+        Logger::warning(getClassName(), __FUNCTION__, "Id is null");
         return false;
     }
     if (handler.getType() == HandlerType_Unknown) {
-        Logger::warning(getClassName(), "Type should not be unknown");
+        Logger::warning(getClassName(), __FUNCTION__, "Type should not be unknown");
         return false;
     }
     if (hasHandler(handler.getId())) {
@@ -189,7 +192,7 @@ bool HandlerManager::registerHandler(Handler& handler)
 bool HandlerManager::unregisterHandler(Handler& handler)
 {
     if (handler.getId().empty()) {
-        Logger::warning(getClassName(), "Id is null");
+        Logger::warning(getClassName(), __FUNCTION__, "Id is null");
         return false;
     }
     deque<Handler>::iterator it = findHandler(handler.getId());

@@ -1,17 +1,22 @@
-/* @@@LICENSE
- *
- * Copyright (c) 2019 LG Electronics, Inc.
- *
- * Confidential computer software. Valid license from LG required for
- * possession, use or copying. Consistent with FAR 12.211 and 12.212,
- * Commercial Computer Software, Computer Software Documentation, and
- * Technical Data for Commercial Items are licensed to the U.S. Government
- * under vendor's standard commercial license.
- *
- * LICENSE@@@
- */
+// Copyright (c) 2020 LG Electronics, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// SPDX-License-Identifier: Apache-2.0
 
 #include "Handler.h"
+
+#include <algorithm>
 
 string Handler::toString(enum HandlerType type)
 {
@@ -84,22 +89,22 @@ bool Handler::isMatched(const Intent& intent)
 
     // check URI
     if (!m_uris.empty()) {
-        string_view schema = intent.getUri().scheme();
-        string_view path = intent.getUri().path();
-        deque<uri>::iterator j;
-        j = find_if(m_uris.begin(), m_uris.end(),
-                    [&] (const uri& u)
-                    {
-                        cout << u.string() << endl;
-                        if (u.scheme().compare(schema)) return false;
-                        cout << u.path() << endl;
-                        cout << path << endl;
-                        if (u.path().compare(path)) return false;
-                        return true;
-                    });
-        if (j == m_uris.end()) {
-            return false;
-        }
+//        string_view schema = intent.getUri().scheme();
+//        string_view path = intent.getUri().path();
+//        deque<URI>::iterator j;
+//        j = find_if(m_uris.begin(), m_uris.end(),
+//                    [&] (const URI& u)
+//                    {
+//                        cout << u.toString() << endl;
+//                        if (u.scheme().compare(schema)) return false;
+//                        cout << u.path() << endl;
+//                        cout << path << endl;
+//                        if (u.path().compare(path)) return false;
+//                        return true;
+//                    });
+//        if (j == m_uris.end()) {
+//            return false;
+//        }
     }
 
     // check mimeType
@@ -151,7 +156,7 @@ bool Handler::fromJson(const JValue& json)
     if (array.arraySize() > 0) {
         m_uris.clear();
         for (JValue uri : array.items()) {
-            m_uris.push_back(network::uri(uri.asString()));
+            m_uris.push_back(URI(uri.asString()));
         }
     }
     return true;
@@ -177,7 +182,7 @@ bool Handler::toJson(JValue& json)
 
     JValue uris = pbnjson::Array();
     for (unsigned int i = 0; i < m_uris.size(); ++i) {
-        uris.append(m_uris[i].string());
+        uris.append(m_uris[i].toString());
     }
     json.put("uris", uris);
 

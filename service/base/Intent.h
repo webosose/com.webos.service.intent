@@ -1,27 +1,29 @@
-/* @@@LICENSE
- *
- * Copyright (c) 2019 LG Electronics, Inc.
- *
- * Confidential computer software. Valid license from LG required for
- * possession, use or copying. Consistent with FAR 12.211 and 12.212,
- * Commercial Computer Software, Computer Software Documentation, and
- * Technical Data for Commercial Items are licensed to the U.S. Government
- * under vendor's standard commercial license.
- *
- * LICENSE@@@
- */
+// Copyright (c) 2020 LG Electronics, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// SPDX-License-Identifier: Apache-2.0
 
-#ifndef CORE_INTENT_H_
-#define CORE_INTENT_H_
+#ifndef BASE_INTENT_H_
+#define BASE_INTENT_H_
 
+#include <base/URI.h>
 #include <iostream>
-#include <network/uri.hpp>
 
 #include "interface/ISerializable.h"
 #include "interface/IClassName.h"
 
 using namespace std;
-using namespace network;
 
 class Intent : public ISerializable, public IClassName {
 friend class Handler;
@@ -38,13 +40,13 @@ public:
         return true;
     }
 
-    virtual bool checkUri() const
+    virtual bool checkUri()
     {
         if (m_uri.empty()) return false;
         return true;
     }
 
-    const void setId(const string& id)
+    void setId(const string& id)
     {
         m_id = id;
     }
@@ -54,7 +56,7 @@ public:
         return m_id;
     }
 
-    const void setRequester(const string& requester)
+    void setRequester(const string& requester)
     {
         m_requester = requester;
     }
@@ -64,7 +66,7 @@ public:
         return m_requester;
     }
 
-    const void setAction(const string& action)
+    void setAction(const string& action)
     {
         m_action = action;
     }
@@ -74,7 +76,7 @@ public:
         return m_action;
     }
 
-    const uri& getUri() const
+    const URI& getUri()
     {
         return m_uri;
     }
@@ -106,10 +108,10 @@ private:
     string m_mimeType;
     string m_result;
 
-    uri m_uri;
+    URI m_uri;
     JValue m_extra;
 
     bool m_chooser;
 };
 
-#endif /* CORE_INTENT_H_ */
+#endif /* BASE_INTENT_H_ */

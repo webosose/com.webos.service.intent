@@ -14,32 +14,27 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Time.h"
+#ifndef INTERFACE_ISINGLETON_H_
+#define INTERFACE_ISINGLETON_H_
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/lexical_cast.hpp>
-#include <time.h>
+#include <iostream>
 
-Time::Time()
-{
-}
+using namespace std;
 
-Time::~Time()
-{
-}
+template <class T>
+class ISingleton {
+public:
+    virtual ~ISingleton() {};
 
-long long Time::getCurrentTime()
-{
-    timespec now;
-    if (clock_gettime(CLOCK_MONOTONIC, &now) == -1)
-        return -1;
-    return (now.tv_sec * 1000) + (now.tv_nsec / 1000000);
-}
+    static T& getInstance()
+    {
+        static T _instance;
+        return _instance;
+    }
 
-string Time::generateUid()
-{
-    boost::uuids::uuid uid = boost::uuids::random_generator()();
-    return string(boost::lexical_cast<string>(uid));
-}
+protected:
+    ISingleton() {};
+
+};
+
+#endif /* INTERFACE_ISINGLETON_H_ */
