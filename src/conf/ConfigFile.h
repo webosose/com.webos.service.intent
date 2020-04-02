@@ -14,25 +14,24 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef MANAGER_CONFIGMANAGER_H_
-#define MANAGER_CONFIGMANAGER_H_
+#ifndef CONF_CONFIGFILE_H_
+#define CONF_CONFIGFILE_H_
 
 #include <iostream>
 
 #include <pbnjson.hpp>
 
-#include "interface/IManageable.h"
+#include "interface/ISingleton.h"
+#include "interface/IInitializable.h"
 
 using namespace std;
 using namespace pbnjson;
 
-class ConfigManager : public IManageable<ConfigManager> {
-friend class IManageable<ConfigManager>;
+class ConfigFile : public ISingleton<ConfigFile>,
+                   public IInitializable {
+friend class ISingleton<ConfigFile>;
 public:
-    virtual ~ConfigManager();
-
-    virtual bool onInitialization() override;
-    virtual bool onFinalization() override;
+    virtual ~ConfigFile();
 
     virtual JValue& getDebugDB();
     virtual JValue& getRuntimeDB();
@@ -48,11 +47,15 @@ public:
         return m_isVerbose;
     }
 
+protected:
+    virtual bool onInitialization() override;
+    virtual bool onFinalization() override;
+
 private:
     static const string DEBUG_DB_PATH;
     static const string RUNTIME_DB_PATH;
 
-    ConfigManager();
+    ConfigFile();
 
     JValue m_debugDB;
     JValue m_runtimeDB;
@@ -61,4 +64,4 @@ private:
     bool m_isVerbose;
 };
 
-#endif /* MANAGER_CONFIGMANAGER_H_ */
+#endif /* CONF_CONFIGFILE_H_ */

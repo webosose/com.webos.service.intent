@@ -17,7 +17,7 @@
 #ifndef BASE_INTENT_H_
 #define BASE_INTENT_H_
 
-#include <base/URI.h>
+#include <base/Uri.h>
 #include <iostream>
 
 #include "interface/ISerializable.h"
@@ -25,7 +25,8 @@
 
 using namespace std;
 
-class Intent : public ISerializable, public IClassName {
+class Intent : public ISerializable,
+               public IClassName {
 friend class Handler;
 public:
     Intent();
@@ -42,7 +43,7 @@ public:
 
     virtual bool checkUri()
     {
-        if (m_uri.empty()) return false;
+        if (m_uri.isValid()) return false;
         return true;
     }
 
@@ -76,7 +77,7 @@ public:
         return m_action;
     }
 
-    const URI& getUri()
+    const Uri& getUri()
     {
         return m_uri;
     }
@@ -108,7 +109,7 @@ private:
     string m_mimeType;
     string m_result;
 
-    URI m_uri;
+    Uri m_uri;
     JValue m_extra;
 
     bool m_chooser;

@@ -14,16 +14,16 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include <base/Intent.h>
+#include "Intent.h"
 #include "util/Logger.h"
 
 Intent::Intent()
-    : m_requester("")
-    , m_action("")
-    , m_mimeType("")
-    , m_result("")
-    , m_uri()
-    , m_chooser(false)
+    : m_requester(""),
+      m_action(""),
+      m_mimeType(""),
+      m_result(""),
+      m_uri(),
+      m_chooser(false)
 {
     setClassName("Intent");
     m_extra = pbnjson::Object();

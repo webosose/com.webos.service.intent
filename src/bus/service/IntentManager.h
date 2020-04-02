@@ -14,24 +14,23 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef MANAGER_HANDLERMANAGER_H_
-#define MANAGER_HANDLERMANAGER_H_
+#ifndef BUS_SERVICE_INTENTMANAGER_H_
+#define BUS_SERVICE_INTENTMANAGER_H_
 
 #include <base/Handler.h>
 #include <base/Intent.h>
 #include <iostream>
 
-#include "interface/IManageable.h"
+#include "interface/ISingleton.h"
+#include "interface/IInitializable.h"
 
 using namespace std;
 
-class HandlerManager : public IManageable<HandlerManager> {
-friend class IManageable<HandlerManager>;
+class IntentManager : public ISingleton<IntentManager>,
+                   public IInitializable {
+friend class ISingleton<IntentManager>;
 public:
-    virtual ~HandlerManager();
-
-    virtual bool onInitialization() override;
-    virtual bool onFinalization() override;
+    virtual ~IntentManager();
 
     virtual bool launch(Intent& intent);
     virtual JValue resolve(Intent& intent);
@@ -41,8 +40,12 @@ public:
     virtual bool registerHandler(Handler& handler);
     virtual bool unregisterHandler(Handler& handler);
 
+protected:
+    virtual bool onInitialization() override;
+    virtual bool onFinalization() override;
+
 private:
-    HandlerManager();
+    IntentManager();
 
     virtual void loadConfig(const JValue& json);
 
@@ -54,4 +57,4 @@ private:
 
 };
 
-#endif /* MANAGER_HANDLERMANAGER_H_ */
+#endif /* BUS_SERVICE_INTENTMANAGER_H_ */

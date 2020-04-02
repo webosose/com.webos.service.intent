@@ -14,37 +14,41 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef MANAGER_APPLICATIONMANAGER_H_
-#define MANAGER_APPLICATIONMANAGER_H_
+#ifndef BUS_CLIENT_SAM_H_
+#define BUS_CLIENT_SAM_H_
 
-#include <base/Handler.h>
 #include <iostream>
 
 #include <luna-service2/lunaservice.hpp>
 
-#include "interface/IManageable.h"
+#include "AbsLunaClient.h"
+#include "base/Handler.h"
+#include "interface/ISingleton.h"
+#include "interface/IInitializable.h"
 
 using namespace std;
 
-class ApplicationManager : public IManageable<ApplicationManager> {
-friend class IManageable<ApplicationManager>;
+class SAM : public AbsLunaClient,
+            public ISingleton<SAM> {
+friend class ISingleton<SAM>;
 public:
-    virtual ~ApplicationManager();
-
-    virtual bool onInitialization() override;
-    virtual bool onFinalization() override;
-    static bool onServerStatus(bool isConnected);
+    virtual ~SAM();
 
     bool launch(Intent& intent, Handler& handler);
 
+protected:
+    virtual void onInitialzed() override;
+    virtual void onFinalized() override;
+    virtual void onServerStatusChanged(bool isConnected) override;
+
 private:
-    ApplicationManager();
+    SAM();
 
     static bool _listApps(LSHandle* sh, LSMessage* reply, void* ctx);
-    void listApps();
 
     LS::ServerStatus m_serverStatus;
-    LS::Call m_listApps;
+    Call m_listApps;
+
 };
 
-#endif /* MANAGER_APPLICATIONMANAGER_H_ */
+#endif /* BUS_CLIENT_SAM_H_ */

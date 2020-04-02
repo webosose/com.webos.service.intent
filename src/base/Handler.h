@@ -18,7 +18,7 @@
 #define BASE_HANDLER_H_
 
 #include <base/Intent.h>
-#include <base/URI.h>
+#include <base/Uri.h>
 #include <iostream>
 #include <deque>
 #include <map>
@@ -73,7 +73,7 @@ public:
         return m_mimeTypes;
     }
 
-    const deque<URI>& getUris()
+    const deque<Uri>& getUris()
     {
         return m_uris;
     }
@@ -96,7 +96,7 @@ private:
 
     deque<string> m_actions;
     deque<string> m_mimeTypes;
-    deque<URI> m_uris;
+    deque<Uri> m_uris;
 
     enum HandlerType m_type;
 };

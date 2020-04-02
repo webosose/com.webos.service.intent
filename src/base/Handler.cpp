@@ -45,9 +45,9 @@ enum HandlerType Handler::toEnum(string type)
 }
 
 Handler::Handler()
-    : m_id("")
-    , m_priority(0)
-    , m_type(HandlerType_Unknown)
+    : m_id(""),
+      m_priority(0),
+      m_type(HandlerType_Unknown)
 {
 }
 
@@ -89,22 +89,9 @@ bool Handler::isMatched(const Intent& intent)
 
     // check URI
     if (!m_uris.empty()) {
-//        string_view schema = intent.getUri().scheme();
-//        string_view path = intent.getUri().path();
-//        deque<URI>::iterator j;
-//        j = find_if(m_uris.begin(), m_uris.end(),
-//                    [&] (const URI& u)
-//                    {
-//                        cout << u.toString() << endl;
-//                        if (u.scheme().compare(schema)) return false;
-//                        cout << u.path() << endl;
-//                        cout << path << endl;
-//                        if (u.path().compare(path)) return false;
-//                        return true;
-//                    });
-//        if (j == m_uris.end()) {
-//            return false;
-//        }
+        for (auto it = m_uris.begin(); it != m_uris.end(); ++it) {
+            // TODO compare 해야함
+        }
     }
 
     // check mimeType
@@ -156,7 +143,7 @@ bool Handler::fromJson(const JValue& json)
     if (array.arraySize() > 0) {
         m_uris.clear();
         for (JValue uri : array.items()) {
-            m_uris.push_back(URI(uri.asString()));
+            m_uris.push_back(Uri(uri.asString()));
         }
     }
     return true;

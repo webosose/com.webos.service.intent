@@ -14,28 +14,27 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "HandlerManager.h"
-
+#include <bus/client/SAM.h>
+#include <bus/service/IntentManager.h>
+#include <bus/service/LS2Handler.h>
+#include <conf/ConfigFile.h>
 #include <algorithm>
 
-#include "ApplicationManager.h"
-#include "IntentManager.h"
-#include "ConfigManager.h"
 #include "util/Logger.h"
 
-Intent HandlerManager::CHOOSER;
+Intent IntentManager::CHOOSER;
 
-HandlerManager::HandlerManager()
+IntentManager::IntentManager()
 {
     setClassName("HanderManager");
     CHOOSER.setAction("action_chooser");
 }
 
-HandlerManager::~HandlerManager()
+IntentManager::~IntentManager()
 {
 }
 
-void HandlerManager::loadConfig(const JValue& json)
+void IntentManager::loadConfig(const JValue& json)
 {
     for (JValue item : json["handlers"].items()) {
         Handler handler;
@@ -45,19 +44,19 @@ void HandlerManager::loadConfig(const JValue& json)
     }
 }
 
-bool HandlerManager::onInitialization()
+bool IntentManager::onInitialization()
 {
-    if (ConfigManager::getInstance().isTest()) {
-        loadConfig(ConfigManager::getInstance().getDebugDB());
+    if (ConfigFile::getInstance().isTest()) {
+        loadConfig(ConfigFile::getInstance().getDebugDB());
         Logger::info(getClassName(), __FUNCTION__, "Load debug configurations");
     }
-    loadConfig(ConfigManager::getInstance().getRuntimeDB());
+    loadConfig(ConfigFile::getInstance().getRuntimeDB());
     Logger::info(getClassName(), __FUNCTION__, "Load runtime configurations");
     ready();
     return true;
 }
 
-bool HandlerManager::onFinalization()
+bool IntentManager::onFinalization()
 {
     JValue handlers = pbnjson::Array();
     for (unsigned int i = 0; i < m_handlers.size(); ++i) {
@@ -68,14 +67,14 @@ bool HandlerManager::onFinalization()
         }
     }
 
-    if (ConfigManager::getInstance().getRuntimeDB()["handlers"] != handlers) {
-        ConfigManager::getInstance().getRuntimeDB().put("handlers", handlers);
+    if (ConfigFile::getInstance().getRuntimeDB()["handlers"] != handlers) {
+        ConfigFile::getInstance().getRuntimeDB().put("handlers", handlers);
         Logger::info(getClassName(), __FUNCTION__, "Save changed runtime handlers");
     }
     return true;
 }
 
-bool HandlerManager::launch(Intent& intent)
+bool IntentManager::launch(Intent& intent)
 {
     Intent *targetIntent = nullptr;
     if (intent.chooser()) {
@@ -93,11 +92,11 @@ bool HandlerManager::launch(Intent& intent)
         return false;
     }
     Logger::info(getClassName(), it->getId(), "Launch target handler");
-    ApplicationManager::getInstance().launch(intent, *it);
+    SAM::getInstance().launch(intent, *it);
     return true;
 }
 
-JValue HandlerManager::resolve(Intent& intent)
+JValue IntentManager::resolve(Intent& intent)
 {
     deque<Handler> handlers;
     std::copy_if(m_handlers.begin(), m_handlers.end(), back_inserter(handlers),
@@ -116,7 +115,7 @@ JValue HandlerManager::resolve(Intent& intent)
     return json;
 }
 
-JValue HandlerManager::getAllHandlers()
+JValue IntentManager::getAllHandlers()
 {
     JValue json = pbnjson::Array();
     for(unsigned i = 0; i < m_handlers.size(); i++) {
@@ -127,7 +126,7 @@ JValue HandlerManager::getAllHandlers()
     return json;
 }
 
-JValue HandlerManager::getHandler(const string& id)
+JValue IntentManager::getHandler(const string& id)
 {
     JValue json = pbnjson::Object();
 
@@ -138,7 +137,7 @@ JValue HandlerManager::getHandler(const string& id)
     return json;
 }
 
-bool HandlerManager::setHandler(Handler& handler)
+bool IntentManager::setHandler(Handler& handler)
 {
     deque<Handler>::iterator it = findHandler(handler.getId());
     if (it == m_handlers.end()) {
@@ -155,7 +154,7 @@ bool HandlerManager::setHandler(Handler& handler)
     return true;
 }
 
-bool HandlerManager::registerHandler(Handler& handler)
+bool IntentManager::registerHandler(Handler& handler)
 {
     if (handler.getId().empty()) {
         Logger::warning(getClassName(), __FUNCTION__, "Id is null");
@@ -189,7 +188,7 @@ bool HandlerManager::registerHandler(Handler& handler)
     return true;
 }
 
-bool HandlerManager::unregisterHandler(Handler& handler)
+bool IntentManager::unregisterHandler(Handler& handler)
 {
     if (handler.getId().empty()) {
         Logger::warning(getClassName(), __FUNCTION__, "Id is null");
@@ -208,7 +207,7 @@ bool HandlerManager::unregisterHandler(Handler& handler)
     return true;
 }
 
-bool HandlerManager::hasHandler(const string& id)
+bool IntentManager::hasHandler(const string& id)
 {
     deque<Handler>::iterator it;
     it = find_if(m_handlers.begin(), m_handlers.end(),
@@ -219,7 +218,7 @@ bool HandlerManager::hasHandler(const string& id)
     return true;
 }
 
-deque<Handler>::iterator HandlerManager::findHandler(const string& id)
+deque<Handler>::iterator IntentManager::findHandler(const string& id)
 {
     deque<Handler>::iterator it;
     it = find_if(m_handlers.begin(), m_handlers.end(),

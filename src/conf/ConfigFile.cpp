@@ -14,18 +14,17 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "ConfigManager.h"
-
+#include <conf/ConfigFile.h>
 #include <fstream>
 
 #include "util/Logger.h"
 
-const string ConfigManager::DEBUG_DB_PATH = "/etc/palm/com.webos.service.intent.json";
-const string ConfigManager::RUNTIME_DB_PATH = "/var/preferences/com.webos.service.intent.json";
+const string ConfigFile::DEBUG_DB_PATH = "/etc/palm/com.webos.service.intent.json";
+const string ConfigFile::RUNTIME_DB_PATH = "/var/preferences/com.webos.service.intent.json";
 
-ConfigManager::ConfigManager()
-    : m_isTest(false)
-    , m_isVerbose(false)
+ConfigFile::ConfigFile()
+    : m_isTest(false),
+      m_isVerbose(false)
 {
     setClassName("ConfigManager");
 
@@ -43,11 +42,11 @@ ConfigManager::ConfigManager()
     }
 }
 
-ConfigManager::~ConfigManager()
+ConfigFile::~ConfigFile()
 {
 }
 
-bool ConfigManager::onInitialization()
+bool ConfigFile::onInitialization()
 {
     m_runtimeDB = JDomParser::fromFile(RUNTIME_DB_PATH.c_str());
     if (m_runtimeDB.isNull()) {
@@ -58,23 +57,23 @@ bool ConfigManager::onInitialization()
     return true;
 }
 
-bool ConfigManager::onFinalization()
+bool ConfigFile::onFinalization()
 {
     syncRuntime();
     return true;
 }
 
-JValue& ConfigManager::getDebugDB()
+JValue& ConfigFile::getDebugDB()
 {
     return m_debugDB;
 }
 
-JValue& ConfigManager::getRuntimeDB()
+JValue& ConfigFile::getRuntimeDB()
 {
     return m_runtimeDB;
 }
 
-void ConfigManager::syncRuntime()
+void ConfigFile::syncRuntime()
 {
     ofstream out(RUNTIME_DB_PATH.c_str());
     if (!out.is_open()) {

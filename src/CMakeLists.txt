@@ -20,10 +20,6 @@ pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 include_directories(${GLIB2_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${GLIB2_CFLAGS_OTHER})
 
-#find_package(Boost REQUIRED COMPONENTS networking)
-#include_directories(${Boost_INCLUDE_DIRS})
-#webos_add_compiler_flags(ALL ${Boost_CFLAGS_OTHER})
-
 pkg_check_modules(LUNASERVICE2 REQUIRED luna-service2)
 include_directories(${LUNASERVICE2_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${LUNASERVICE2_CFLAGS_OTHER})
@@ -39,6 +35,10 @@ webos_add_compiler_flags(ALL ${PBNJSON_C_CFLAGS_OTHER})
 pkg_check_modules(PBNJSON_CPP REQUIRED pbnjson_cpp)
 include_directories(${PBNJSON_CPP_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${PBNJSON_CPP_CFLAGS_OTHER})
+
+pkg_check_modules(URIPARSER REQUIRED uriparser)
+include_directories(${URIPARSER_INCLUDE_DIRS})
+webos_add_compiler_flags(ALL ${URIPARSER_CFLAGS_OTHER})
 
 # Environment
 set(BIN_NAME com.webos.service.intent)
@@ -56,7 +56,7 @@ set(LIBS
     ${LUNASERVICE2CPP_LDFLAGS}
     ${PBNJSON_C_LDFLAGS}
     ${PBNJSON_CPP_LDFLAGS}
-    network-uri
+    ${URIPARSER_LDFLAGS}
 )
 target_link_libraries(${BIN_NAME} ${LIBS})
 

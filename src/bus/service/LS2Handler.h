@@ -14,8 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef MANAGER_INTENTMANAGER_H_
-#define MANAGER_INTENTMANAGER_H_
+#ifndef BUS_SERVICE_LS2HANDLER_H_
+#define BUS_SERVICE_LS2HANDLER_H_
 
 #include <iostream>
 #include <queue>
@@ -23,22 +23,21 @@
 #include <pbnjson.hpp>
 #include <luna-service2/lunaservice.hpp>
 
-#include "interface/IManageable.h"
+#include "interface/ISingleton.h"
+#include "interface/IInitializable.h"
 
 using namespace std;
 using namespace LS;
 using namespace pbnjson;
 
-class IntentManager : public Handle, public IManageable<IntentManager> {
-friend class IManageable<IntentManager>;
+class LS2Handler : public Handle,
+                   public ISingleton<LS2Handler>,
+                   public IInitializable {
+friend class ISingleton<LS2Handler>;
 public:
     static void writelog(LS::Message& request, const string& type, JValue& payload);
 
-    virtual ~IntentManager();
-
-    // IManageable
-    virtual bool onInitialization() override;
-    virtual bool onFinalization() override;
+    virtual ~LS2Handler();
 
     // APIs
     void launch(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
@@ -51,14 +50,19 @@ public:
 
     static const string NAME;
 
+protected:
+    // IManageable
+    virtual bool onInitialization() override;
+    virtual bool onFinalization() override;
+
 private:
-    static bool onRequest(LSHandle* sh, LSMessage* msg, void* category_context);
+    static bool onAPICalled(LSHandle* sh, LSMessage* msg, void* category_context);
     static gboolean onRequest(gpointer user_data);
 
     static void pre(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
     static void post(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
 
-    IntentManager();
+    LS2Handler();
 
     static const LSMethod METHODS[];
 
@@ -66,4 +70,4 @@ private:
 
 };
 
-#endif /* MANAGER_INTENTMANAGER_H_ */
+#endif /* BUS_SERVICE_LS2HANDLER_H_ */
