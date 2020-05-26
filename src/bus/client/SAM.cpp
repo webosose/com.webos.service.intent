@@ -56,11 +56,11 @@ void SAM::onServerStatusChanged(bool isConnected)
     }
 }
 
-bool SAM::launch(Intent& intent, Handler& handler)
+bool SAM::launch(Intent& intent, HandlerPtr handler)
 {
     static const string API = "luna://com.webos.service.applicationmanager/launch";
     pbnjson::JValue requestPayload = pbnjson::Object();
-    requestPayload.put("id", handler.getId());
+    requestPayload.put("id", handler->getId());
 
     pbnjson::JValue params = pbnjson::Object();
     params.put("requester", intent.getRequester());
@@ -112,12 +112,14 @@ bool SAM::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
             continue;
         }
 
-        Handler handler;
-        handler.fromJson(application["intentFilter"]);
-        handler.setId(application["id"].asString());
-        handler.setType(HandlerType_AppInfo);
-        if (!IntentManager::getInstance().registerHandler(handler)) {
-            Logger::error(SAM::getInstance().getClassName(), handler.getId(), "Failed to register handler");
+        if (!application.hasKey("intentFilter")) continue;
+
+        HandlerPtr handler = make_shared<Handler>();
+        handler->fromJson(application["intentFilter"]);
+        handler->setId(application["id"].asString());
+        handler->setType(HandlerType_AppInfo);
+        if (Handlers::getInstance().add(handler, HandlerType_AppInfo)) {
+            Logger::error(SAM::getInstance().getClassName(), handler->getId(), "Failed to register handler");
         }
     }
     // Ready when first *running* subscription.

@@ -2,7 +2,7 @@
     "intent.manager": [
         "com.webos.service.intent/resolve",
         "com.webos.service.intent/getHandler",
-        "com.webos.service.intent/setHandler",
+        "com.webos.service.intent/updateHandler",
         "com.webos.service.intent/registerHandler",
         "com.webos.service.intent/unregisterHandler"
     ],

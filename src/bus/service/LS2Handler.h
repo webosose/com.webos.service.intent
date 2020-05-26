@@ -44,7 +44,7 @@ public:
     void finish(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
     void resolve(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
     void getHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
-    void setHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void updateHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
     void registerHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
     void unregisterHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
 

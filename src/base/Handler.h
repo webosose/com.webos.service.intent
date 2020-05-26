@@ -34,6 +34,7 @@ enum HandlerType {
 };
 
 class Handler : public ISerializable {
+friend class Handlers;
 public:
     static string toString(enum HandlerType type);
     static enum HandlerType toEnum(string type);
@@ -88,6 +89,13 @@ public:
         return m_type;
     }
 
+    const bool isValid()
+    {
+        if (m_id.empty() || m_actions.size() == 0 || m_type == HandlerType_Unknown)
+            return false;
+        return true;
+    }
+
 private:
     static void getUniqueArray(const JValue& from, JValue& to);
 
@@ -100,5 +108,7 @@ private:
 
     enum HandlerType m_type;
 };
+
+typedef shared_ptr<Handler> HandlerPtr;
 
 #endif /* BASE_HANDLER_H_ */

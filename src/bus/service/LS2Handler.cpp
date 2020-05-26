@@ -136,7 +136,7 @@ void LS2Handler::getHandler(LS::Message& request, JValue& requestPayload, JValue
     }
 }
 
-void LS2Handler::setHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
+void LS2Handler::updateHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
 {
     Handler handler;
     if (!handler.fromJson(requestPayload)) {
@@ -152,46 +152,42 @@ void LS2Handler::setHandler(LS::Message& request, JValue& requestPayload, JValue
         return;
     }
     handler.setType(HandlerType_Runtime);
-    if (!IntentManager::getInstance().setHandler(handler)) {
-        responsePayload.put("errorText", "Failed to set handler");
-        return;
-    }
+//    if (!IntentManager::getInstance().setHandler(handler)) {
+//        responsePayload.put("errorText", "Failed to set handler");
+//        return;
+//    }
 }
 
 void LS2Handler::registerHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
 {
-    Handler handler;
-    if (!handler.fromJson(requestPayload)) {
+    HandlerPtr handler = make_shared<Handler>();
+    if (handler == nullptr) {
         responsePayload.put("errorText", "Invalid parameter");
         return;
     }
-    if (handler.getId().empty()) {
-        responsePayload.put("errorText", "'id' is required parameter");
+    if (handler->fromJson(requestPayload)) {
+        responsePayload.put("errorText", "Invalid parameter");
         return;
     }
-    if (handler.getActions().size() == 0) {
-        responsePayload.put("errorText", "'actions' is required parameter");
-        return;
-    }
-    if (!IntentManager::getInstance().registerHandler(handler)) {
-        responsePayload.put("errorText", "Failed to register handler");
+    if (Handlers::getInstance().add(handler, HandlerType_Runtime)) {
+        responsePayload.put("errorText", "Invalid parameter");
         return;
     }
 }
 
 void LS2Handler::unregisterHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload)
 {
-    Handler handler;
-    if (!handler.fromJson(requestPayload)) {
-        responsePayload.put("errorText", "Invalid parameter");
-        return;
-    }
-    if (handler.getId().empty()) {
+    string id = "";
+    if (!JValueUtil::getValue(requestPayload, "id", id)) {
         responsePayload.put("errorText", "'id' is required parameter");
         return;
     }
-    if (!IntentManager::getInstance().unregisterHandler(handler)) {
-        responsePayload.put("errorText", "Failed to unregister handler");
+    if (Handlers::getInstance().findHandler(id) == nullptr) {
+        responsePayload.put("errorText", "Cannot find handler");
+        return;
+    }
+    if (!Handlers::getInstance().remove(id, HandlerType_Runtime)) {
+        responsePayload.put("errorText", "Cannot unregister appinfo handler");
         return;
     }
 }
@@ -256,8 +252,8 @@ gboolean LS2Handler::onRequest(gpointer user_data)
             LS2Handler::getInstance().resolve(request, requestPayload, responsePayload);
         } else if (method == "getHandler") {
             LS2Handler::getInstance().getHandler(request, requestPayload, responsePayload);
-        } else if (method == "setHandler") {
-            LS2Handler::getInstance().setHandler(request, requestPayload, responsePayload);
+        } else if (method == "updateHandler") {
+            LS2Handler::getInstance().updateHandler(request, requestPayload, responsePayload);
         } else if (method == "registerHandler") {
             LS2Handler::getInstance().registerHandler(request, requestPayload, responsePayload);
         } else if (method == "unregisterHandler") {

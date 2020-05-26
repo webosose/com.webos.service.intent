@@ -34,7 +34,7 @@ friend class ISingleton<SAM>;
 public:
     virtual ~SAM();
 
-    bool launch(Intent& intent, Handler& handler);
+    bool launch(Intent& intent, HandlerPtr handler);
 
 protected:
     virtual void onInitialzed() override;

@@ -17,17 +17,22 @@
 #ifndef BUS_SERVICE_INTENTMANAGER_H_
 #define BUS_SERVICE_INTENTMANAGER_H_
 
-#include <base/Handler.h>
-#include <base/Intent.h>
 #include <iostream>
 
+#include "base/Handler.h"
+#include "base/Handlers.h"
+#include "base/Intent.h"
+#include "bus/client/SAM.h"
+#include "bus/service/LS2Handler.h"
+#include "conf/ConfigFile.h"
 #include "interface/ISingleton.h"
 #include "interface/IInitializable.h"
+#include "util/Logger.h"
 
 using namespace std;
 
 class IntentManager : public ISingleton<IntentManager>,
-                   public IInitializable {
+                      public IInitializable {
 friend class ISingleton<IntentManager>;
 public:
     virtual ~IntentManager();
@@ -36,9 +41,6 @@ public:
     virtual JValue resolve(Intent& intent);
     virtual JValue getAllHandlers();
     virtual JValue getHandler(const string& id);
-    virtual bool setHandler(Handler& handler);
-    virtual bool registerHandler(Handler& handler);
-    virtual bool unregisterHandler(Handler& handler);
 
 protected:
     virtual bool onInitialization() override;
@@ -49,11 +51,7 @@ private:
 
     virtual void loadConfig(const JValue& json);
 
-    virtual bool hasHandler(const string& id);
-    virtual deque<Handler>::iterator findHandler(const string& id);
-
     static Intent CHOOSER;
-    deque<Handler> m_handlers;
 
 };
 
