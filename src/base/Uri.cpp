@@ -17,58 +17,57 @@
 #include <base/Uri.h>
 
 Uri::Uri()
-    : m_isValid(false)
+    : m_uri(""),
+      m_scheme(""),
+      m_host(""),
+      m_path(""),
+      m_query(""),
+      m_fragment(""),
+      m_isValid(false)
 {
+
 }
 
 Uri::Uri(const string& str)
-    : m_isValid(false)
+    : Uri()
 {
-    fromString(str);
+    parse(str);
 }
 
 Uri::~Uri()
 {
-    if (m_isValid) {
-        uriFreeUriMembersA(&m_uri);
-    }
 }
 
-bool Uri::isValid()
+bool Uri::parse(const string& str)
 {
-    return m_isValid;
-}
+    static const std::regex URL(R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)", std::regex::extended);
 
-const string Uri::toString() const
-{
-    int charsRequired = -1;
-    if (uriToStringCharsRequiredA(&m_uri, &charsRequired) != URI_SUCCESS) {
-        return "";
-    }
-    charsRequired++;
+    // clear
+    m_isValid = false;
+    m_uri = str;
+    m_scheme = "";
+    m_host = "";
+    m_path = "";
+    m_query = "";
+    m_fragment = "";
 
-    char* uriString = (char*)malloc(charsRequired * sizeof(char));
-    if (uriString == NULL) {
-        return "";
-    }
-    if (uriToStringA(uriString, &m_uri, charsRequired, NULL) != URI_SUCCESS) {
-        return "";
-    }
-    return uriString;
-}
-
-bool Uri::fromString(const string& str)
-{
-    if (m_isValid) {
-        uriFreeUriMembersA(&m_uri);
-        m_isValid = false;
-    }
-    const char * errorPos;
-    if (uriParseSingleUriA(&m_uri, str.c_str(), &errorPos) != URI_SUCCESS) {
-        m_isValid = false;
-    } else {
+    // See : https://stackoverflow.com/questions/5620235/cpp-regular-expression-to-validate-url/31613265#31613265
+    std::smatch result;
+    if (std::regex_match(m_uri, result, URL)) {
+        unsigned counter = 0;
+        for (const auto &res : result) {
+            switch (counter) {
+            case 2: m_scheme = res;   break;
+            case 4: m_host = res;     break;
+            case 5: m_path = res;     break;
+            case 7: m_query = res;    break;
+            case 9: m_fragment = res; break;
+            default:
+                break;
+            }
+            counter++;
+        }
         m_isValid = true;
     }
     return m_isValid;
 }
-

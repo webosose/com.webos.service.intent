@@ -18,7 +18,7 @@
 #define BASE_URI_H_
 
 #include <iostream>
-#include <uriparser/Uri.h>
+#include <regex>
 
 #include "interface/ISerializable.h"
 
@@ -30,38 +30,26 @@ public:
     Uri(const string& str);
     virtual ~Uri();
 
-    bool isValid();
+    bool parse(const string& str);
 
-    string scheme()   const { return fromRange(m_uri.scheme); }
-    string host()     const { return fromRange(m_uri.hostText); }
-    string port()     const { return fromRange(m_uri.portText); }
-    string path()     const { return fromList(m_uri.pathHead, "/"); }
-    string query()    const { return fromRange(m_uri.query); }
-    string fragment() const { return fromRange(m_uri.fragment); }
+    string uri()      const { return m_uri; }
+    string scheme()   const { return m_scheme; }
+    string host()     const { return m_host; }
+    string path()     const { return m_path; }
+    string query()    const { return m_query; }
+    string fragment() const { return m_fragment; }
 
-    const string toString() const;
-    virtual bool fromString(const string& str);
+    string toString() const { return m_uri; }
+    bool isValid()    const { return m_isValid; }
 
 private:
-    string fromRange(const UriTextRangeA & range) const
-    {
-        return std::string(range.first, range.afterLast);
-    }
-    std::string fromList(UriPathSegmentA * xs, const std::string & delim) const
-    {
-        UriPathSegmentStructA * head(xs);
-        std::string accum;
+    string m_uri;
+    string m_scheme;
+    string m_host;
+    string m_path;
+    string m_query;
+    string m_fragment;
 
-        while (head)
-        {
-            accum += delim + fromRange(head->text);
-            head = head->next;
-        }
-
-        return accum;
-    }
-
-    UriUriA m_uri;
     bool m_isValid;
 };
 

@@ -58,7 +58,7 @@ bool Intent::fromJson(const JValue& json)
         m_chooser = json["chooser"].asBool();
     }
     if (json.hasKey("uri") && json["uri"].isString()) {
-        m_uri.fromString(json["uri"].asString());
+        m_uri.parse(json["uri"].asString());
     }
     return true;
 }

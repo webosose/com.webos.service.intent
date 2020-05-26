@@ -36,10 +36,6 @@ pkg_check_modules(PBNJSON_CPP REQUIRED pbnjson_cpp)
 include_directories(${PBNJSON_CPP_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${PBNJSON_CPP_CFLAGS_OTHER})
 
-pkg_check_modules(URIPARSER REQUIRED uriparser)
-include_directories(${URIPARSER_INCLUDE_DIRS})
-webos_add_compiler_flags(ALL ${URIPARSER_CFLAGS_OTHER})
-
 # Environment
 set(BIN_NAME com.webos.service.intent)
 file(GLOB_RECURSE SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
@@ -56,7 +52,6 @@ set(LIBS
     ${LUNASERVICE2CPP_LDFLAGS}
     ${PBNJSON_C_LDFLAGS}
     ${PBNJSON_CPP_LDFLAGS}
-    ${URIPARSER_LDFLAGS}
 )
 target_link_libraries(${BIN_NAME} ${LIBS})
 

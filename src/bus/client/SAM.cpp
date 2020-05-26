@@ -120,10 +120,9 @@ bool SAM::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
             Logger::error(SAM::getInstance().getClassName(), handler.getId(), "Failed to register handler");
         }
     }
-
     // Ready when first *running* subscription.
-    if (!SAM::getInstance().isReady()) {
-        SAM::getInstance().ready();
-    }
+//    if (!SAM::getInstance().isReady()) {
+//        SAM::getInstance().ready();
+//    }
     return true;
 }

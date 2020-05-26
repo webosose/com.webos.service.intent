@@ -214,10 +214,10 @@ gboolean LS2Handler::onRequest(gpointer user_data)
         return G_SOURCE_REMOVE;
     }
     bool isReady = true;
-    if (!SAM::getInstance().isReady()) {
-        Logger::warning(LS2Handler::getInstance().getClassName(), __FUNCTION__, "ApplicationManager is not ready");
-        isReady = false;
-    }
+//    if (!SAM::getInstance().isReady()) {
+//        Logger::warning(LS2Handler::getInstance().getClassName(), __FUNCTION__, "ApplicationManager is not ready");
+//        isReady = false;
+//    }
     if (!ConfigFile::getInstance().isReady()) {
         Logger::warning(LS2Handler::getInstance().getClassName(), __FUNCTION__, "ConfigManager is not ready");
         isReady = false;
