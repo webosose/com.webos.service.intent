@@ -14,7 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include <base/Uri.h>
+#include "Uri.h"
 
 Uri::Uri()
     : m_uri(""),

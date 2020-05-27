@@ -21,8 +21,8 @@
 #include <luna-service2/lunaservice.hpp>
 #include <pbnjson.hpp>
 #include <boost/signals2.hpp>
-#include <bus/service/LS2Handler.h>
 
+#include "bus/service/IntentManager.h"
 #include "interface/IClassName.h"
 #include "util/JValueUtil.h"
 

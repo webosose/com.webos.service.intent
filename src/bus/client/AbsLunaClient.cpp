@@ -79,7 +79,7 @@ void AbsLunaClient::initialize()
 {
     JValue requestPayload = pbnjson::Object();
     requestPayload.put("serviceName", getName());
-    m_statusCall = LS2Handler::getInstance().callMultiReply(
+    m_statusCall = IntentManager::getInstance().callMultiReply(
         "luna://com.webos.service.bus/signal/registerServerStatus",
         requestPayload.stringify().c_str(),
         _onServerStatus,

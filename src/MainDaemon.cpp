@@ -24,10 +24,10 @@
 #include <memory>
 #include <glib.h>
 #include <boost/bind.hpp>
-#include <bus/client/SAM.h>
-#include <bus/service/IntentManager.h>
-#include <bus/service/LS2Handler.h>
-#include <conf/ConfigFile.h>
+
+#include "bus/client/SAM.h"
+#include "bus/service/IntentManager.h"
+#include "conf/ConfigFile.h"
 #include "util/File.h"
 #include "util/JValueUtil.h"
 
@@ -51,14 +51,14 @@ void MainDaemon::initialize()
 {
     ConfigFile::getInstance().initialize(m_mainLoop);
     IntentManager::getInstance().initialize(m_mainLoop);
-    LS2Handler::getInstance().initialize(m_mainLoop);
+    IntentManager::getInstance().initialize(m_mainLoop);
     SAM::getInstance().initialize();
 }
 
 void MainDaemon::finalize()
 {
     SAM::getInstance().finalize();
-    LS2Handler::getInstance().finalize();
+    IntentManager::getInstance().finalize();
     IntentManager::getInstance().finalize();
     ConfigFile::getInstance().finalize();
 }

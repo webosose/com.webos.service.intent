@@ -41,8 +41,9 @@ public:
     virtual bool remove(const string& id, enum HandlerType type);
 
     virtual bool hasHandler(const string& id);
-    virtual HandlerPtr findHandler(const string& id);
-    virtual HandlerPtr findHandler(const Intent& intent);
+    virtual HandlerPtr getChooser();
+    virtual HandlerPtr getHandler(const string& id);
+    virtual HandlerPtr getHandler(const Intent& intent);
 
     // ISerializable
     virtual bool toJson(JValue& array) override;
@@ -54,6 +55,8 @@ private:
     Handlers();
 
     deque<HandlerPtr> m_handlers;
+    Intent m_chooser;
+
 };
 
 #endif /* BASE_HANDLERS_H_ */

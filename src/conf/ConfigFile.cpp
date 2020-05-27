@@ -14,7 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include <conf/ConfigFile.h>
+#include "ConfigFile.h"
+
 #include <fstream>
 
 #include "util/Logger.h"

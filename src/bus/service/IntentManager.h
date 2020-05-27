@@ -18,40 +18,55 @@
 #define BUS_SERVICE_INTENTMANAGER_H_
 
 #include <iostream>
+#include <queue>
 
-#include "base/Handler.h"
-#include "base/Handlers.h"
-#include "base/Intent.h"
-#include "bus/client/SAM.h"
-#include "bus/service/LS2Handler.h"
-#include "conf/ConfigFile.h"
+#include <pbnjson.hpp>
+#include <luna-service2/lunaservice.hpp>
+
 #include "interface/ISingleton.h"
 #include "interface/IInitializable.h"
-#include "util/Logger.h"
 
 using namespace std;
+using namespace LS;
+using namespace pbnjson;
 
-class IntentManager : public ISingleton<IntentManager>,
+class IntentManager : public Handle,
+                      public ISingleton<IntentManager>,
                       public IInitializable {
 friend class ISingleton<IntentManager>;
 public:
+    static void writelog(LS::Message& request, const string& type, JValue& payload);
+
     virtual ~IntentManager();
 
-    virtual bool launch(Intent& intent);
-    virtual JValue resolve(Intent& intent);
-    virtual JValue getAllHandlers();
-    virtual JValue getHandler(const string& id);
+    // APIs
+    void launch(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void finish(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void resolve(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void getHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void updateHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void registerHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    void unregisterHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+
+    static const string NAME;
 
 protected:
+    // IManageable
     virtual bool onInitialization() override;
     virtual bool onFinalization() override;
 
 private:
+    static bool onAPICalled(LSHandle* sh, LSMessage* msg, void* category_context);
+    static gboolean onRequest(gpointer user_data);
+
+    static void pre(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+    static void post(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
+
     IntentManager();
 
-    virtual void loadConfig(const JValue& json);
+    static const LSMethod METHODS[];
 
-    static Intent CHOOSER;
+    queue<LS::Message> m_requests;
 
 };
 

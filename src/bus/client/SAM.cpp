@@ -15,10 +15,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <base/Handler.h>
+#include <base/Handlers.h>
 #include <bus/client/SAM.h>
 #include <bus/service/IntentManager.h>
-#include <bus/service/IntentManager.h>
-#include <bus/service/LS2Handler.h>
 #include "util/Logger.h"
 
 SAM::SAM()
@@ -45,7 +44,7 @@ void SAM::onServerStatusChanged(bool isConnected)
 {
     static string method = string("luna://") + getName() + string("/listApps");
     if (isConnected) {
-        m_listApps = LS2Handler::getInstance().callMultiReply(
+        m_listApps = IntentManager::getInstance().callMultiReply(
             method.c_str(),
             AbsLunaClient::getSubscriptionPayload().stringify().c_str(),
             _listApps,
@@ -71,7 +70,7 @@ bool SAM::launch(Intent& intent, HandlerPtr handler)
     requestPayload.put("params", params);
 
     try {
-        auto call = LS2Handler::getInstance().callOneReply(
+        auto call = IntentManager::getInstance().callOneReply(
             API.c_str(),
             requestPayload.stringify().c_str()
         );

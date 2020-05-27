@@ -21,6 +21,7 @@
 Handlers::Handlers()
 {
     setClassName("Handlers");
+    m_chooser.setAction("action_chooser");
 }
 
 Handlers::~Handlers()
@@ -40,7 +41,12 @@ void Handlers::save()
 
 void Handlers::load()
 {
-
+    JValue handlers = pbnjson::Array();
+    for (JValue item : handlers.items()) {
+        HandlerPtr handler = make_shared<Handler>();
+        handler->fromJson(item);
+        Handlers::getInstance().add(handler, HandlerType_AppInfo);
+    }
 }
 
 bool Handlers::add(HandlerPtr handler, enum HandlerType type)
@@ -49,7 +55,7 @@ bool Handlers::add(HandlerPtr handler, enum HandlerType type)
         return false;
     }
 
-    if (findHandler(handler->getId()) != nullptr) {
+    if (getHandler(handler->getId()) != nullptr) {
         // already existing. Please use update API instead
         return false;
     }
@@ -85,7 +91,12 @@ bool Handlers::hasHandler(const string& id)
     return false;
 }
 
-HandlerPtr Handlers::findHandler(const string& id)
+HandlerPtr Handlers::getChooser()
+{
+    return getHandler(m_chooser);
+}
+
+HandlerPtr Handlers::getHandler(const string& id)
 {
     for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
         if ((*it)->getId() == id) {
@@ -95,7 +106,7 @@ HandlerPtr Handlers::findHandler(const string& id)
     return nullptr;
 }
 
-HandlerPtr Handlers::findHandler(const Intent& intent)
+HandlerPtr Handlers::getHandler(const Intent& intent)
 {
     for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
         if ((*it)->isMatched(intent)) {
@@ -155,7 +166,7 @@ bool Handlers::toJson(JValue& json, const string& id)
         json = pbnjson::Object();
     }
 
-    HandlerPtr handler = findHandler(id);
+    HandlerPtr handler = getHandler(id);
     if (handler == nullptr)
         return false;
 

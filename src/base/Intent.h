@@ -17,9 +17,9 @@
 #ifndef BASE_INTENT_H_
 #define BASE_INTENT_H_
 
-#include <base/Uri.h>
 #include <iostream>
 
+#include "base/Uri.h"
 #include "interface/ISerializable.h"
 #include "interface/IClassName.h"
 

@@ -17,12 +17,12 @@
 #ifndef BASE_HANDLER_H_
 #define BASE_HANDLER_H_
 
-#include <base/Intent.h>
-#include <base/Uri.h>
 #include <iostream>
 #include <deque>
 #include <map>
 
+#include "base/Intent.h"
+#include "base/Uri.h"
 #include "interface/ISerializable.h"
 
 using namespace std;
