@@ -16,27 +16,7 @@
 
 #include "AbsLunaClient.h"
 
-JValue& AbsLunaClient::getEmptyPayload()
-{
-    static JValue empty;
-
-    if (empty.isNull()) {
-        empty = pbnjson::Object();
-    }
-    return empty;
-}
-
-JValue& AbsLunaClient::getSubscriptionPayload()
-{
-    static JValue subscription;
-    if (subscription.isNull()) {
-        subscription = pbnjson::Object();
-        subscription.put("subscribe", true);
-    }
-    return subscription;
-}
-
-bool AbsLunaClient::_onServerStatus(LSHandle* sh, LSMessage* message, void* context)
+bool AbsLunaClient::_onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context)
 {
     AbsLunaClient* client = static_cast<AbsLunaClient*>(context);
 
@@ -56,7 +36,6 @@ bool AbsLunaClient::_onServerStatus(LSHandle* sh, LSMessage* message, void* cont
     else
         Logger::info(client->getClassName(), __FUNCTION__, "Service is down");
 
-    client->m_serverStatusCount++;
     client->m_isConnected = connected;
     client->EventServiceStatusChanged(connected);
     client->onServerStatusChanged(connected);
@@ -64,8 +43,7 @@ bool AbsLunaClient::_onServerStatus(LSHandle* sh, LSMessage* message, void* cont
 }
 
 AbsLunaClient::AbsLunaClient(const string& name)
-    : m_serverStatusCount(0),
-      m_name(name),
+    : m_name(name),
       m_isConnected(false)
 {
     setClassName("AbsLunaClient");
@@ -73,24 +51,24 @@ AbsLunaClient::AbsLunaClient(const string& name)
 
 AbsLunaClient::~AbsLunaClient()
 {
+    m_statusCall.cancel();
 }
 
-void AbsLunaClient::initialize()
+bool AbsLunaClient::onInitialization()
 {
     JValue requestPayload = pbnjson::Object();
-    requestPayload.put("serviceName", getName());
+    requestPayload.put("serviceName", m_name);
     m_statusCall = IntentManager::getInstance().callMultiReply(
         "luna://com.webos.service.bus/signal/registerServerStatus",
         requestPayload.stringify().c_str(),
-        _onServerStatus,
+        _onServerStatusChanged,
         this
     );
-
-    onInitialzed();
+    return true;
 }
 
-void AbsLunaClient::finalize()
+bool AbsLunaClient::onFinalization()
 {
     m_statusCall.cancel();
-    onFinalized();
+    return true;
 }

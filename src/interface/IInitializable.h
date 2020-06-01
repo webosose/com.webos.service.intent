@@ -66,10 +66,10 @@ public:
 
 protected:
     IInitializable()
-        : m_mainloop(nullptr)
-        , m_isReady(false)
-        , m_isInitalized(false)
-        , m_isFinalized(false)
+        : m_mainloop(nullptr),
+          m_isReady(false),
+          m_isInitalized(false),
+          m_isFinalized(false)
     {
     };
 

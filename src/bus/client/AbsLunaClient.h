@@ -18,12 +18,14 @@
 #define BUS_CLIENT_ABSLUNACLIENT_H_
 
 #include <iostream>
+#include <boost/signals2.hpp>
+
 #include <luna-service2/lunaservice.hpp>
 #include <pbnjson.hpp>
-#include <boost/signals2.hpp>
 
 #include "bus/service/IntentManager.h"
 #include "interface/IClassName.h"
+#include "interface/IInitializable.h"
 #include "util/JValueUtil.h"
 
 using namespace std;
@@ -43,41 +45,45 @@ public:
     }
 };
 
-class AbsLunaClient : public IClassName {
+class AbsLunaClient : public IInitializable{
 public:
-    static JValue& getEmptyPayload();
-    static JValue& getSubscriptionPayload();
+    static JValue& getEmptyPayload()
+    {
+        static JValue _PAYLOAD;
+
+        if (_PAYLOAD.isNull()) {
+            _PAYLOAD = pbnjson::Object();
+        }
+        return _PAYLOAD;
+    }
+
+    static JValue& getSubscriptionPayload()
+    {
+        static JValue _PAYLOAD;
+        if (_PAYLOAD.isNull()) {
+            _PAYLOAD = pbnjson::Object();
+            _PAYLOAD.put("subscribe", true);
+        }
+        return _PAYLOAD;
+    }
 
     AbsLunaClient(const string& name);
     virtual ~AbsLunaClient();
 
-    virtual void initialize() final;
-    virtual void finalize() final;
-
-    const string& getName()
-    {
-        return m_name;
-    }
-
-    bool isConnected()
-    {
-        return m_isConnected;
-    }
-
     boost::signals2::signal<void(bool)> EventServiceStatusChanged;
 
 protected:
-    virtual void onInitialzed() = 0;
-    virtual void onFinalized() = 0;
+    virtual bool onInitialization() override;
+    virtual bool onFinalization() override;
+
     virtual void onServerStatusChanged(bool isConnected) = 0;
-
-    int m_serverStatusCount;
-
-private:
-    static bool _onServerStatus(LSHandle* sh, LSMessage* message, void* context);
 
     string m_name;
     bool m_isConnected;
+
+private:
+    static bool _onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context);
+
     Call m_statusCall;
 };
 

@@ -17,11 +17,10 @@
 #ifndef MAIN_DAEMON_H
 #define MAIN_DAEMON_H
 
-#include <luna-service2/lunaservice.h>
 #include <pbnjson.hpp>
 
-#include "interface/ISingleton.h"
 #include "interface/IClassName.h"
+#include "interface/ISingleton.h"
 
 using namespace std;
 using namespace pbnjson;
@@ -40,14 +39,6 @@ public:
 
 private:
     MainDaemon();
-
-    void onGetBootStatus(const JValue& subscriptionPayload);
-    void onGetConfigs(const JValue& subscriptionPayload);
-
-    void checkPreconditions();
-
-    bool m_isCBDGenerated;
-    bool m_isConfigsReceived;
 
     GMainLoop *m_mainLoop;
 

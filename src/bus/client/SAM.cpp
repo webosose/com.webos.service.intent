@@ -14,10 +14,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include <base/Handler.h>
-#include <base/Handlers.h>
-#include <bus/client/SAM.h>
-#include <bus/service/IntentManager.h>
+#include "base/Handler.h"
+#include "base/Handlers.h"
+#include "bus/client/SAM.h"
+#include "bus/service/IntentManager.h"
 #include "util/Logger.h"
 
 SAM::SAM()
@@ -30,19 +30,11 @@ SAM::~SAM()
 {
 }
 
-void SAM::onInitialzed()
-{
-
-}
-
-void SAM::onFinalized()
-{
-    m_listApps.cancel();
-}
-
 void SAM::onServerStatusChanged(bool isConnected)
 {
-    static string method = string("luna://") + getName() + string("/listApps");
+    static string method = string("luna://") + m_name + string("/listApps");
+
+    m_listApps.cancel();
     if (isConnected) {
         m_listApps = IntentManager::getInstance().callMultiReply(
             method.c_str(),
@@ -50,14 +42,13 @@ void SAM::onServerStatusChanged(bool isConnected)
             _listApps,
             this
         );
-    } else {
-        m_listApps.cancel();
     }
 }
 
 bool SAM::launch(Intent& intent, HandlerPtr handler)
 {
-    static const string API = "luna://com.webos.service.applicationmanager/launch";
+    static const string API = string("luna://") + m_name + string("/launch");
+
     pbnjson::JValue requestPayload = pbnjson::Object();
     requestPayload.put("id", handler->getId());
 
@@ -100,9 +91,9 @@ bool SAM::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
         return false;
     }
 
-    string id;
     for (JValue application : subscriptionPayload["apps"].items()) {
-        if (!application.hasKey("id") || application["id"].asString(id) != CONV_OK) {
+        string id = "";
+        if (!JValueUtil::getValue(application, "id", id)) {
             Logger::warning(SAM::getInstance().getClassName(), __FUNCTION__, "'id' is empty");
             continue;
         }
@@ -110,8 +101,6 @@ bool SAM::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
             Logger::debug(SAM::getInstance().getClassName(), __FUNCTION__, "'intentFilter' is null");
             continue;
         }
-
-        if (!application.hasKey("intentFilter")) continue;
 
         HandlerPtr handler = make_shared<Handler>();
         handler->fromJson(application["intentFilter"]);
@@ -121,9 +110,10 @@ bool SAM::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
             Logger::error(SAM::getInstance().getClassName(), handler->getId(), "Failed to register handler");
         }
     }
+
     // Ready when first *running* subscription.
-//    if (!SAM::getInstance().isReady()) {
-//        SAM::getInstance().ready();
-//    }
+    if (!SAM::getInstance().isReady()) {
+        SAM::getInstance().ready();
+    }
     return true;
 }

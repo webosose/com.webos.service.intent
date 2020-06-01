@@ -84,9 +84,9 @@ int main(int argc, char **argv)
     try {
         MainDaemon::getInstance().initialize();
         MainDaemon::getInstance().start();
-        MainDaemon::getInstance().finalize();
     } catch(...) {
         Logger::info(CLASS_NAME, __FUNCTION__, "Failed to Intent process");
     }
+    MainDaemon::getInstance().finalize();
     return EXIT_SUCCESS;
 }

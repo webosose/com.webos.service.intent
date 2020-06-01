@@ -37,14 +37,12 @@ public:
     bool launch(Intent& intent, HandlerPtr handler);
 
 protected:
-    virtual void onInitialzed() override;
-    virtual void onFinalized() override;
     virtual void onServerStatusChanged(bool isConnected) override;
 
 private:
-    SAM();
-
     static bool _listApps(LSHandle* sh, LSMessage* reply, void* ctx);
+
+    SAM();
 
     LS::ServerStatus m_serverStatus;
     Call m_listApps;

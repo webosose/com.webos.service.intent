@@ -35,20 +35,16 @@ class IntentManager : public Handle,
                       public IInitializable {
 friend class ISingleton<IntentManager>;
 public:
-    static void writelog(LS::Message& request, const string& type, JValue& payload);
-
     virtual ~IntentManager();
 
     // APIs
-    void launch(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
-    void finish(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
-    void resolve(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
-    void getHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
-    void updateHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
-    void registerHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
-    void unregisterHandler(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
-
-    static const string NAME;
+    bool launch(LSMessage &message);
+    bool finish(LSMessage &message);
+    bool resolve(LSMessage &message);
+    bool getHandler(LSMessage &message);
+    bool updateHandler(LSMessage &message);
+    bool registerHandler(LSMessage &message);
+    bool unregisterHandler(LSMessage &message);
 
 protected:
     // IManageable
@@ -56,17 +52,7 @@ protected:
     virtual bool onFinalization() override;
 
 private:
-    static bool onAPICalled(LSHandle* sh, LSMessage* msg, void* category_context);
-    static gboolean onRequest(gpointer user_data);
-
-    static void pre(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
-    static void post(LS::Message& request, JValue& requestPayload, JValue& responsePayload);
-
     IntentManager();
-
-    static const LSMethod METHODS[];
-
-    queue<LS::Message> m_requests;
 
 };
 

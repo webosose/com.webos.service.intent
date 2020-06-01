@@ -33,8 +33,6 @@
 
 
 MainDaemon::MainDaemon()
-    : m_isCBDGenerated(false),
-      m_isConfigsReceived(false)
 {
     setClassName("MainDaemon");
     m_mainLoop = g_main_loop_new(NULL, FALSE);
@@ -51,14 +49,12 @@ void MainDaemon::initialize()
 {
     ConfigFile::getInstance().initialize(m_mainLoop);
     IntentManager::getInstance().initialize(m_mainLoop);
-    IntentManager::getInstance().initialize(m_mainLoop);
-    SAM::getInstance().initialize();
+    SAM::getInstance().initialize(m_mainLoop);
 }
 
 void MainDaemon::finalize()
 {
     SAM::getInstance().finalize();
-    IntentManager::getInstance().finalize();
     IntentManager::getInstance().finalize();
     ConfigFile::getInstance().finalize();
 }
@@ -73,39 +69,5 @@ void MainDaemon::stop()
 {
     if (m_mainLoop)
         g_main_loop_quit(m_mainLoop);
-}
-
-void MainDaemon::onGetBootStatus(const JValue& subscriptionPayload)
-{
-    bool coreBootDone;
-    if (!JValueUtil::getValue(subscriptionPayload, "signals", "core-boot-done", coreBootDone) && !coreBootDone) {
-        return;
-    }
-    m_isCBDGenerated = true;
-    checkPreconditions();
-}
-
-void MainDaemon::onGetConfigs(const JValue& responsePayload)
-{
-    m_isConfigsReceived = true;
-    checkPreconditions();
-}
-
-void MainDaemon::checkPreconditions()
-{
-    static bool isFired = false;
-    if (isFired)
-        return;
-
-    if (!m_isConfigsReceived) {
-        Logger::info(getClassName(), __FUNCTION__, "Wait for receiving 'getConfigs' response");
-        return;
-    }
-    if (!m_isCBDGenerated) {
-        Logger::info(getClassName(), __FUNCTION__, "Wait for receiving 'getBootStatus' response");
-        return;
-    }
-    Logger::info(getClassName(), __FUNCTION__, "All initial components are ready");
-    isFired = true;
 }
 
