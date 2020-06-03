@@ -16,12 +16,14 @@
 
 #include "Handlers.h"
 
-#include "conf/ConfigFile.h"
+#include "conf/ConfFile.h"
+#include "util/JValueUtil.h"
 
 Handlers::Handlers()
 {
     setClassName("Handlers");
-    m_chooser.setAction("action_chooser");
+    m_chooser = make_shared<Intent>();
+    m_chooser->setAction("action_chooser");
 }
 
 Handlers::~Handlers()
@@ -31,10 +33,10 @@ Handlers::~Handlers()
 void Handlers::save()
 {
     JValue handlers = pbnjson::Array();
-    toJson(handlers, HandlerType_Runtime);
+    toJsonByType(handlers, "runtime");
 
-    if (ConfigFile::getInstance().getRuntimeDB()["handlers"] != handlers) {
-        ConfigFile::getInstance().getRuntimeDB().put("handlers", handlers);
+    if (ConfFile::getInstance().get()["handlers"] != handlers) {
+        ConfFile::getInstance().get().put("handlers", handlers);
         Logger::info(getClassName(), __FUNCTION__, "Save changed runtime handlers");
     }
 }
@@ -42,16 +44,19 @@ void Handlers::save()
 void Handlers::load()
 {
     JValue handlers = pbnjson::Array();
+
+    JValueUtil::getValue(ConfFile::getInstance().get(), "handlers", handlers);
     for (JValue item : handlers.items()) {
         HandlerPtr handler = make_shared<Handler>();
         handler->fromJson(item);
-        Handlers::getInstance().add(handler, HandlerType_AppInfo);
+        handler->setType("appinfo");
+        Handlers::getInstance().add(handler, "appinfo");
     }
 }
 
-bool Handlers::add(HandlerPtr handler, enum HandlerType type)
+bool Handlers::add(HandlerPtr handler, const string& type)
 {
-    if (handler == nullptr || handler->getType() != type) {
+    if (handler == nullptr || !handler->isValid() || handler->getType() != type) {
         return false;
     }
 
@@ -70,7 +75,7 @@ bool Handlers::add(HandlerPtr handler, enum HandlerType type)
     return true;
 }
 
-bool Handlers::remove(const string& id, enum HandlerType type)
+bool Handlers::remove(const string& id, const string& type)
 {
     for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
         if ((*it)->getId() == id && (*it)->getType() == type) {
@@ -106,7 +111,7 @@ HandlerPtr Handlers::getHandler(const string& id)
     return nullptr;
 }
 
-HandlerPtr Handlers::getHandler(const Intent& intent)
+HandlerPtr Handlers::getHandler(IntentPtr intent)
 {
     for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
         if ((*it)->isMatched(intent)) {
@@ -130,22 +135,7 @@ bool Handlers::toJson(JValue& array)
     return true;
 }
 
-bool Handlers::toJson(JValue& array, const enum HandlerType type)
-{
-    if (!array.isArray()) {
-        array = pbnjson::Array();
-    }
-
-    for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
-        if ((*it)->getType() != type) continue;
-        JValue item = pbnjson::Object();
-        (*it)->toJson(item);
-        array.append(item);
-    }
-    return true;
-}
-
-bool Handlers::toJson(JValue& array, const Intent& intent)
+bool Handlers::toJson(JValue& array, IntentPtr intent)
 {
     if (!array.isArray()) {
         array = pbnjson::Array();
@@ -160,7 +150,22 @@ bool Handlers::toJson(JValue& array, const Intent& intent)
     return true;
 }
 
-bool Handlers::toJson(JValue& json, const string& id)
+bool Handlers::toJsonByType(JValue& array, const string& type)
+{
+    if (!array.isArray()) {
+        array = pbnjson::Array();
+    }
+
+    for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
+        if ((*it)->getType() != type) continue;
+        JValue item = pbnjson::Object();
+        (*it)->toJson(item);
+        array.append(item);
+    }
+    return true;
+}
+
+bool Handlers::toJsonByID(JValue& json, const string& id)
 {
     if (!json.isObject()) {
         json = pbnjson::Object();

@@ -14,8 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef CONF_CONFIGFILE_H_
-#define CONF_CONFIGFILE_H_
+#ifndef CONF_CONFFILE_H_
+#define CONF_CONFFILE_H_
 
 #include <iostream>
 
@@ -27,24 +27,17 @@
 using namespace std;
 using namespace pbnjson;
 
-class ConfigFile : public ISingleton<ConfigFile>,
-                   public IInitializable {
-friend class ISingleton<ConfigFile>;
+class ConfFile : public ISingleton<ConfFile>,
+                 public IInitializable {
+friend class ISingleton<ConfFile>;
 public:
-    virtual ~ConfigFile();
+    virtual ~ConfFile();
 
-    virtual JValue& getDebugDB();
-    virtual JValue& getRuntimeDB();
-    virtual void syncRuntime();
+    virtual JValue& get();
 
-    bool isTest()
+    virtual bool testmode()
     {
-        return m_isTest;
-    }
-
-    bool isVerbose()
-    {
-        return m_isVerbose;
+        return m_testmode;
     }
 
 protected:
@@ -52,16 +45,12 @@ protected:
     virtual bool onFinalization() override;
 
 private:
-    static const string DEBUG_DB_PATH;
-    static const string RUNTIME_DB_PATH;
+    ConfFile();
 
-    ConfigFile();
+    static const string PATH_DATABASE;
 
-    JValue m_debugDB;
-    JValue m_runtimeDB;
-
-    bool m_isTest;
-    bool m_isVerbose;
+    JValue m_database;
+    bool m_testmode;
 };
 
-#endif /* CONF_CONFIGFILE_H_ */
+#endif /* CONF_CONFFILE_H_ */

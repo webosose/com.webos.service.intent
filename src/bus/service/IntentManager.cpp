@@ -21,7 +21,6 @@
 #include "base/Intent.h"
 #include "bus/client/SAM.h"
 #include "bus/service/IntentManager.h"
-#include "conf/ConfigFile.h"
 #include "util/Logger.h"
 
 IntentManager::IntentManager()
@@ -46,14 +45,15 @@ IntentManager::~IntentManager()
 
 bool IntentManager::onInitialization()
 {
-    attachToLoop(m_mainloop);
-    this->ready();
+    try {
+        Handle::attachToLoop(m_mainloop);
+    } catch(exception& e) {
+    }
     return true;
 }
 
 bool IntentManager::onFinalization()
 {
-    detach();
     return true;
 }
 
@@ -65,33 +65,25 @@ bool IntentManager::launch(LSMessage &message)
     string errorText = "";
 
     HandlerPtr handler = nullptr;
-    Intent intent;
+    IntentPtr intent = make_shared<Intent>();
 
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
-    if (requestPayload.isNull()) {
-        errorText = "invalid parameters";
+    if (intent->fromJson(requestPayload) == false) {
+        errorText = "Invalid parameter";
         goto Done;
     }
-    if (intent.fromJson(requestPayload) == false) {
-        responsePayload.put("errorText", "Invalid parameter");
+    intent->setRequester(request.getSenderServiceName() ? request.getSenderServiceName() : request.getApplicationID());
+    if (!intent->isValid()) {
+        errorText = "Intent is not valid";
         goto Done;
     }
-    if (!intent.checkAction()) {
-        responsePayload.put("errorText", "'action' is required parameter");
-        goto Done;
-    }
-    if (!intent.checkUri()) {
-        responsePayload.put("errorText", "'uri' is required parameter");
-        goto Done;
-    }
-    intent.setRequester(request.getSenderServiceName() ? request.getSenderServiceName() : request.getApplicationID());
-    if (intent.chooser()) {
+    if (intent->chooser()) {
         handler = Handlers::getInstance().getChooser();
     } else {
         handler = Handlers::getInstance().getHandler(intent);
     }
     if (handler == nullptr) {
-        responsePayload.put("errorText", "Cannot find handler");
+        errorText = "Cannot find handler";
         goto Done;
     }
     Logger::info(getClassName(), handler->getId(), "Launch target handler");
@@ -118,12 +110,8 @@ bool IntentManager::finish(LSMessage &message)
     Intent intent;
 
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
-    if (requestPayload.isNull()) {
-        errorText = "invalid parameters";
-        goto Done;
-    }
     if (intent.fromJson(requestPayload) == false) {
-        responsePayload.put("errorText", "Invalid parameter");
+        errorText = "Invalid parameter";
         goto Done;
     }
 
@@ -145,21 +133,14 @@ bool IntentManager::resolve(LSMessage &message)
     JValue responsePayload = pbnjson::Object();
     string errorText = "";
 
-    Intent intent;
     JValue handlers = pbnjson::Array();
 
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
-    if (requestPayload.isNull()) {
-        errorText = "invalid parameters";
-        goto Done;
-    }
-    if (!intent.fromJson(requestPayload)) {
-        responsePayload.put("errorText", "Invalid parameter");
-        goto Done;
-    }
     if (requestPayload.objectSize() == 0) {
         Handlers::getInstance().toJson(handlers);
     } else {
+        IntentPtr intent = make_shared<Intent>();
+        intent->fromJson(requestPayload);
         Handlers::getInstance().toJson(handlers, intent);
     }
     responsePayload.put("handlers", handlers);
@@ -185,20 +166,16 @@ bool IntentManager::getHandler(LSMessage &message)
     string id = "";
 
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
-    if (requestPayload.isNull()) {
-        errorText = "invalid parameters";
-        goto Done;
-    }
     if (!JValueUtil::getValue(requestPayload, "id", id)) {
-        responsePayload.put("errorText", "'id' is required parameter");
+        errorText = "Cannot find 'id' parameter";
         goto Done;
     }
     if (Handlers::getInstance().getHandler(id) == nullptr) {
-        responsePayload.put("errorText", "Cannot find handler");
+        errorText = "Cannot find handler";
         goto Done;
     }
-    if (!Handlers::getInstance().toJson(responsePayload, id)) {
-        responsePayload.put("errorText", "Failed to find handler");
+    if (!Handlers::getInstance().toJsonByID(responsePayload, id)) {
+        errorText = "Cannot convert handler to json";
         goto Done;
     }
 
@@ -220,33 +197,40 @@ bool IntentManager::updateHandler(LSMessage &message)
     JValue responsePayload = pbnjson::Object();
     string errorText = "";
 
-    Handler handler;
+    HandlerPtr handler = nullptr;
+    string id = "";
+    int priority = 0;
+    JValue actions;
+    JValue mimeTypes;
+    JValue uris;
 
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
-    if (requestPayload.isNull()) {
-        errorText = "invalid parameters";
+    if (!JValueUtil::getValue(requestPayload, "id", id)) {
+        errorText = "'id' is required parameter";
         goto Done;
     }
-    if (!handler.fromJson(requestPayload)) {
-        responsePayload.put("errorText", "Invalid parameter");
-        goto Done;
-    }
-    if (handler.getId().empty()) {
-        responsePayload.put("errorText", "'id' is required parameter");
-        goto Done;
-    }
-    if (handler.getActions().size() == 0) {
-        responsePayload.put("errorText", "'actions' is required parameter");
-        goto Done;
-    }
-    handler.setType(HandlerType_Runtime);
-//    if (!IntentManager::getInstance().setHandler(handler)) {
-//        responsePayload.put("errorText", "Failed to set handler");
-//        return;
-//    }
 
+    handler = Handlers::getInstance().getHandler(id);
+    if (handler == nullptr) {
+        errorText = "Cannot find proper handler";
+        goto Done;
+    } else if (handler->getType() == "appinfo") {
+        errorText = "Updating 'appinfo' type is not allowed";
+        goto Done;
+    }
 
-
+    if (JValueUtil::getValue(requestPayload, "priority", priority)) {
+        handler->setPriority(priority);
+    }
+    if (JValueUtil::getValue(requestPayload, "actions", actions)) {
+        handler->setActions(actions);
+    }
+    if (JValueUtil::getValue(requestPayload, "mimeTypes", mimeTypes)) {
+        handler->setMimeTypes(mimeTypes);
+    }
+    if (JValueUtil::getValue(requestPayload, "uris", uris)) {
+        handler->setUris(priority);
+    }
 
 Done:
     if (!errorText.empty()) {
@@ -266,30 +250,37 @@ bool IntentManager::registerHandler(LSMessage &message)
     JValue responsePayload = pbnjson::Object();
     string errorText = "";
 
-    HandlerPtr handler = make_shared<Handler>();
-
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
-    if (requestPayload.isNull()) {
-        errorText = "invalid parameters";
+
+    HandlerPtr newHandler = make_shared<Handler>();
+    HandlerPtr oldHandler = nullptr;
+    if (newHandler == nullptr) {
+        errorText = "Cannot create handler object";
         goto Done;
     }
-    if (handler == nullptr) {
-        responsePayload.put("errorText", "Invalid parameter");
+    if (!newHandler->fromJson(requestPayload)) {
+        errorText = "Cannot parse requestPayload";
         goto Done;
     }
-    if (handler->fromJson(requestPayload)) {
-        responsePayload.put("errorText", "Invalid parameter");
+    newHandler->setType("runtime");
+    if (!newHandler->isValid()) {
+        errorText = "Invalid parameters";
         goto Done;
     }
-    if (Handlers::getInstance().add(handler, HandlerType_Runtime)) {
-        responsePayload.put("errorText", "Invalid parameter");
+    oldHandler = Handlers::getInstance().getHandler(newHandler->getId());
+    if (oldHandler != nullptr) {
+        if (oldHandler->getType() == "runtime") {
+            errorText = "Already registered. Call 'updateHandler' API instead";
+            goto Done;
+        } else {
+            errorText = "'appinfo' handler is exist";
+            goto Done;
+        }
+    }
+    if (!Handlers::getInstance().add(newHandler, "runtime")) {
+        errorText = "Failed to register handler";
         goto Done;
     }
-
-
-
-
-
 
 Done:
     if (!errorText.empty()) {
@@ -312,20 +303,16 @@ bool IntentManager::unregisterHandler(LSMessage &message)
     string id = "";
 
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
-    if (requestPayload.isNull()) {
-        errorText = "invalid parameters";
-        goto Done;
-    }
     if (!JValueUtil::getValue(requestPayload, "id", id)) {
-        responsePayload.put("errorText", "'id' is required parameter");
+        errorText = "'id' is required parameter";
         goto Done;
     }
     if (Handlers::getInstance().getHandler(id) == nullptr) {
-        responsePayload.put("errorText", "Cannot find handler");
+        errorText = "Cannot find handler";
         goto Done;
     }
-    if (!Handlers::getInstance().remove(id, HandlerType_Runtime)) {
-        responsePayload.put("errorText", "Cannot unregister appinfo handler");
+    if (!Handlers::getInstance().remove(id, "runtime")) {
+        errorText = "Cannot unregister appinfo handler";
         goto Done;
     }
 

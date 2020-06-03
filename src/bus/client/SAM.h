@@ -34,7 +34,8 @@ friend class ISingleton<SAM>;
 public:
     virtual ~SAM();
 
-    bool launch(Intent& intent, HandlerPtr handler);
+    bool launch(IntentPtr intent, HandlerPtr handler);
+    void listApps(JValue& subscriptionPayload);
 
 protected:
     virtual void onServerStatusChanged(bool isConnected) override;

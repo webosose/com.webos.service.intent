@@ -27,23 +27,14 @@
 
 using namespace std;
 
-enum HandlerType {
-    HandlerType_Unknown,
-    HandlerType_AppInfo,
-    HandlerType_Runtime,
-};
-
 class Handler : public ISerializable {
 friend class Handlers;
 public:
-    static string toString(enum HandlerType type);
-    static enum HandlerType toEnum(string type);
-
     Handler();
     virtual ~Handler();
 
     virtual bool launch(Intent intent);
-    virtual bool isMatched(const Intent& intent);
+    virtual bool isMatched(IntentPtr intent);
 
     // ISerializable
     virtual bool fromJson(const JValue& json) override;
@@ -53,60 +44,83 @@ public:
     {
         m_id = id;
     }
-
     const string& getId() const
     {
         return m_id;
     }
 
-    const int getPriority()
-    {
-        return m_priority;
-    }
-
-    const deque<string>& getActions()
-    {
-        return m_actions;
-    }
-
-    const deque<string>& getMimeTypes()
-    {
-        return m_mimeTypes;
-    }
-
-    const deque<Uri>& getUris()
-    {
-        return m_uris;
-    }
-
-    void setType(HandlerType type)
+    void setType(const string& type)
     {
         m_type = type;
     }
-
-    const HandlerType getType()
+    const string& getType()
     {
         return m_type;
     }
 
+    void setPriority(const int& priority)
+    {
+        m_priority = priority;
+    }
+    const int& getPriority()
+    {
+        return m_priority;
+    }
+
+    void setActions(const JValue& actions)
+    {
+        if (!actions.isArray())
+            return;
+        m_actions = actions.duplicate();
+    }
+    const JValue& getActions()
+    {
+        return m_actions;
+    }
+
+    void setMimeTypes(const JValue& mimeTypes)
+    {
+        if (!mimeTypes.isArray())
+            return;
+        m_mimeTypes = mimeTypes.duplicate();
+    }
+    const JValue& getMimeTypes()
+    {
+        return m_mimeTypes;
+    }
+
+    void setUris(const JValue& uris)
+    {
+        if (!uris.isArray())
+            return;
+        m_uris = uris.duplicate();
+    }
+    const JValue& getUris()
+    {
+        return m_uris;
+    }
+
     const bool isValid()
     {
-        if (m_id.empty() || m_actions.size() == 0 || m_type == HandlerType_Unknown)
+        if (m_id.empty() || m_type.empty() || m_priority < 0 || m_actions.arraySize() <= 0)
             return false;
         return true;
     }
 
 private:
-    static void getUniqueArray(const JValue& from, JValue& to);
+    bool checkAction(const string& action);
+    bool checkUri(const Uri& uri);
+    bool checkMime(const string& mime);
+
+    const static string CLASS_NAME;
 
     string m_id;
+    string m_type;  // "appinfo", "runtime"
     int m_priority;
 
-    deque<string> m_actions;
-    deque<string> m_mimeTypes;
-    deque<Uri> m_uris;
-
-    enum HandlerType m_type;
+    JValue m_actions;
+    JValue m_mimeTypes;
+    JValue m_uris;
 };
 
 typedef shared_ptr<Handler> HandlerPtr;

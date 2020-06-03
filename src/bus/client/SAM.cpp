@@ -18,6 +18,7 @@
 #include "base/Handlers.h"
 #include "bus/client/SAM.h"
 #include "bus/service/IntentManager.h"
+#include "conf/ConfFile.h"
 #include "util/Logger.h"
 
 SAM::SAM()
@@ -45,7 +46,7 @@ void SAM::onServerStatusChanged(bool isConnected)
     }
 }
 
-bool SAM::launch(Intent& intent, HandlerPtr handler)
+bool SAM::launch(IntentPtr intent, HandlerPtr handler)
 {
     static const string API = string("luna://") + m_name + string("/launch");
 
@@ -53,11 +54,11 @@ bool SAM::launch(Intent& intent, HandlerPtr handler)
     requestPayload.put("id", handler->getId());
 
     pbnjson::JValue params = pbnjson::Object();
-    params.put("requester", intent.getRequester());
-    params.put("action", intent.getAction());
-    params.put("uri", intent.getUri().toString());
-    if (!intent.getExtra().isNull())
-        params.put("extra", intent.getExtra());
+    params.put("requester", intent->getRequester());
+    params.put("action", intent->getAction());
+    params.put("uri", intent->getUri().toString());
+    if (!intent->getExtra().isNull())
+        params.put("extra", intent->getExtra());
     requestPayload.put("params", params);
 
     try {
@@ -73,22 +74,13 @@ bool SAM::launch(Intent& intent, HandlerPtr handler)
     return true;
 }
 
-bool SAM::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
+void SAM::listApps(JValue& subscriptionPayload)
 {
-    Message response(reply);
-    JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
-    Logger::logSubscriptionResponse(getInstance().getClassName(), __FUNCTION__, response, subscriptionPayload);
+    JValue apps;
 
-    if (response.isHubError() || !subscriptionPayload["returnValue"].asBool()) {
-        Logger::error(SAM::getInstance().getClassName(), __FUNCTION__, std::string(response.getPayload()));
-        return false;
-    }
-
-    if (!subscriptionPayload.hasKey("apps") ||
-        !subscriptionPayload["apps"].isArray() ||
-        subscriptionPayload["apps"].arraySize() <= 0) {
-        Logger::error(SAM::getInstance().getClassName(), __FUNCTION__, response.getPayload());
-        return false;
+    if (!JValueUtil::getValue(subscriptionPayload, "apps", apps) || !apps.isArray()) {
+        Logger::error(SAM::getInstance().getClassName(), __FUNCTION__, "Failed to get 'apps' in subscriptionPayload");
+        return;
     }
 
     for (JValue application : subscriptionPayload["apps"].items()) {
@@ -98,22 +90,31 @@ bool SAM::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
             continue;
         }
         if (!application.hasKey("intentFilter")) {
-            Logger::debug(SAM::getInstance().getClassName(), __FUNCTION__, "'intentFilter' is null");
+            Logger::debug(SAM::getInstance().getClassName(), __FUNCTION__, id, "'intentFilter' is null");
             continue;
         }
 
         HandlerPtr handler = make_shared<Handler>();
         handler->fromJson(application["intentFilter"]);
-        handler->setId(application["id"].asString());
-        handler->setType(HandlerType_AppInfo);
-        if (Handlers::getInstance().add(handler, HandlerType_AppInfo)) {
+        handler->setId(id);
+        handler->setType("appinfo");
+        if (!Handlers::getInstance().add(handler, "appinfo")) {
             Logger::error(SAM::getInstance().getClassName(), handler->getId(), "Failed to register handler");
         }
     }
+}
 
-    // Ready when first *running* subscription.
-    if (!SAM::getInstance().isReady()) {
-        SAM::getInstance().ready();
+bool SAM::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
+{
+    Message response(reply);
+    JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
+    Logger::logSubscriptionResponse(getInstance().getClassName(), __FUNCTION__, response, subscriptionPayload);
+    bool returnValue = false;
+    JValueUtil::getValue(subscriptionPayload, "returnValue", returnValue);
+    if (response.isHubError() || !returnValue) {
+        Logger::error(SAM::getInstance().getClassName(), __FUNCTION__, std::string(response.getPayload()));
+        return true;
     }
+    getInstance().listApps(subscriptionPayload);
     return true;
 }

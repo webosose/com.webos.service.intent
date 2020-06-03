@@ -23,7 +23,7 @@ Uri::Uri()
       m_path(""),
       m_query(""),
       m_fragment(""),
-      m_isValid(false)
+      m_empty(true)
 {
 
 }
@@ -43,7 +43,7 @@ bool Uri::parse(const string& str)
     static const std::regex URL(R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)", std::regex::extended);
 
     // clear
-    m_isValid = false;
+    m_empty = true;
     m_uri = str;
     m_scheme = "";
     m_host = "";
@@ -67,7 +67,18 @@ bool Uri::parse(const string& str)
             }
             counter++;
         }
-        m_isValid = true;
+        // For debugging purpose.
+        printf("scheme(%s) host(%s) path(%s) query(%s) fragment(%s)\n", m_scheme.c_str(), m_host.c_str(), m_path.c_str(), m_query.c_str(), m_fragment.c_str());
+
+        m_empty = false;
     }
-    return m_isValid;
+    return !m_empty;
+}
+
+bool Uri::operator==(const Uri& another)
+{
+    if (!m_scheme.empty() && m_scheme != another.m_scheme) return false;
+    if (!m_host.empty() && m_host != another.m_host) return false;
+    if (!m_path.empty() && m_path != another.m_path) return false;
+    return true;
 }

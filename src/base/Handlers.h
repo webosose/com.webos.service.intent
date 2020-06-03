@@ -37,25 +37,25 @@ public:
     virtual void save();
     virtual void load();
 
-    virtual bool add(HandlerPtr handler, enum HandlerType type);
-    virtual bool remove(const string& id, enum HandlerType type);
+    virtual bool add(HandlerPtr handler, const string& type);
+    virtual bool remove(const string& id, const string& type);
 
     virtual bool hasHandler(const string& id);
     virtual HandlerPtr getChooser();
     virtual HandlerPtr getHandler(const string& id);
-    virtual HandlerPtr getHandler(const Intent& intent);
+    virtual HandlerPtr getHandler(IntentPtr intent);
 
     // ISerializable
     virtual bool toJson(JValue& array) override;
-    virtual bool toJson(JValue& array, const enum HandlerType type);
-    virtual bool toJson(JValue& array, const Intent& intent);
-    virtual bool toJson(JValue& json, const string& id);
+    virtual bool toJson(JValue& array, IntentPtr intent);
+    virtual bool toJsonByType(JValue& array, const string& type);
+    virtual bool toJsonByID(JValue& json, const string& id);
 
 private:
     Handlers();
 
     deque<HandlerPtr> m_handlers;
-    Intent m_chooser;
+    IntentPtr m_chooser;
 
 };
 

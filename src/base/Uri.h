@@ -40,17 +40,22 @@ public:
     string fragment() const { return m_fragment; }
 
     string toString() const { return m_uri; }
-    bool isValid()    const { return m_isValid; }
+
+    bool isMatched()  const;
+    bool empty()      const { return m_empty; }
+
+    bool operator==(const Uri& another);
 
 private:
     string m_uri;
+
     string m_scheme;
     string m_host;
     string m_path;
     string m_query;
     string m_fragment;
 
-    bool m_isValid;
+    bool m_empty;
 };
 
 #endif /* BASE_URI_H_ */

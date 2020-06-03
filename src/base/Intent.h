@@ -25,43 +25,19 @@
 
 using namespace std;
 
-class Intent : public ISerializable,
-               public IClassName {
-friend class Handler;
+class Intent : public ISerializable {
 public:
     Intent();
     virtual ~Intent();
 
+    // ISerializable
     virtual bool fromJson(const JValue& json) override;
     virtual bool toJson(JValue& json) override;
-
-    virtual bool checkAction() const
-    {
-        if (m_action.empty()) return false;
-        return true;
-    }
-
-    virtual bool checkUri()
-    {
-        if (m_uri.isValid()) return false;
-        return true;
-    }
-
-    void setId(const string& id)
-    {
-        m_id = id;
-    }
-
-    const string& getId()
-    {
-        return m_id;
-    }
 
     void setRequester(const string& requester)
     {
         m_requester = requester;
     }
-
     const string& getRequester()
     {
         return m_requester;
@@ -71,18 +47,17 @@ public:
     {
         m_action = action;
     }
-
-    const string& getAction()
+    const string& getAction() const
     {
         return m_action;
     }
 
-    const Uri& getUri()
+    const Uri& getUri() const
     {
-        return m_uri;
+        return m_uriObj;
     }
 
-    const string& getMimeType()
+    const string& getMimeType() const
     {
         return m_mimeType;
     }
@@ -102,17 +77,27 @@ public:
         return m_chooser;
     }
 
+    virtual bool isValid() const
+    {
+        if (m_requester.empty() || m_action.empty() || m_uriObj.empty())
+            return false;
+        return true;
+    }
+
 private:
-    string m_id;
+    const static string CLASS_NAME;
+
     string m_requester;
     string m_action;
     string m_mimeType;
     string m_result;
-
-    Uri m_uri;
+    string m_uri;
     JValue m_extra;
-
     bool m_chooser;
+
+    Uri m_uriObj;
 };
+
+typedef shared_ptr<Intent> IntentPtr;
 
 #endif /* BASE_INTENT_H_ */

@@ -16,10 +16,3 @@
 
 webos_build_configured_file(files/launch/com.webos.service.intent.service SYSCONFDIR systemd/system/webos-cbd.target.wants)
 webos_build_configured_file(files/conf/com.webos.service.intent.json WEBOS_SYSCONFDIR "")
-
-# tests
-webos_build_configured_file(files/test/com.webos.service.intent_QO-4123.json WEBOS_SYSCONFDIR "")
-webos_build_configured_file(files/test/com.webos.service.intent_QO-4124.json WEBOS_SYSCONFDIR "")
-webos_build_configured_file(files/test/com.webos.service.intent_QO-4163.json WEBOS_SYSCONFDIR "")
-webos_build_configured_file(files/test/com.webos.service.intent_QO-4165.json WEBOS_SYSCONFDIR "")
-webos_build_configured_file(files/test/com.webos.service.intent_QO-4168.json WEBOS_SYSCONFDIR "")

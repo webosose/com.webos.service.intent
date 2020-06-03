@@ -16,6 +16,8 @@
 
 #include "AbsLunaClient.h"
 
+#include "conf/ConfFile.h"
+
 bool AbsLunaClient::_onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context)
 {
     AbsLunaClient* client = static_cast<AbsLunaClient*>(context);
@@ -56,6 +58,10 @@ AbsLunaClient::~AbsLunaClient()
 
 bool AbsLunaClient::onInitialization()
 {
+    if (ConfFile::getInstance().testmode())
+        return true;
+
+    m_statusCall.cancel();
     JValue requestPayload = pbnjson::Object();
     requestPayload.put("serviceName", m_name);
     m_statusCall = IntentManager::getInstance().callMultiReply(

@@ -50,13 +50,7 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
     Logger::warning(CLASS_NAME, __FUNCTION__, Logger::format("signal(%d) si_code(%d) sender(%s) si_pid(%d), si_uid(%d)", signal, si_code, buf.c_str(), siginfo->si_pid, siginfo->si_uid));
 
 Done:
-    if (signal == SIGHUP || signal == SIGINT || signal == SIGPIPE) {
-        Logger::warning(CLASS_NAME, __FUNCTION__, "Ignore received signal");
-        return;
-    } else {
-        Logger::warning(CLASS_NAME, __FUNCTION__, "Try to terminate process");
-    }
-
+    Logger::warning(CLASS_NAME, __FUNCTION__, "Try to terminate process");
     MainDaemon::getInstance().stop();
 }
 

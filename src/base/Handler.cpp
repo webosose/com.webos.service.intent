@@ -18,37 +18,19 @@
 
 #include <algorithm>
 
-string Handler::toString(enum HandlerType type)
-{
-    switch(type) {
-    case HandlerType_AppInfo:
-        return "appinfo";
+#include "util/Logger.h"
+#include "util/JValueUtil.h"
 
-    case HandlerType_Runtime:
-        return "runtime";
-
-    default:
-        return "unknown";
-    }
-    return "unknown";
-}
-
-enum HandlerType Handler::toEnum(string type)
-{
-    if (type == "appinfo") {
-        return HandlerType_AppInfo;
-    } else if (type == "runtime") {
-        return HandlerType_Runtime;
-    } else {
-        return HandlerType_Unknown;
-    }
-}
+const string Handler::CLASS_NAME = "Handler";
 
 Handler::Handler()
     : m_id(""),
-      m_priority(0),
-      m_type(HandlerType_Unknown)
+      m_type(""),
+      m_priority(0)
 {
+    m_actions = pbnjson::Array();
+    m_mimeTypes = pbnjson::Array();
+    m_uris = pbnjson::Array();
 }
 
 Handler::~Handler()
@@ -60,91 +42,35 @@ bool Handler::launch(Intent intent)
     return true;
 }
 
-bool Handler::isMatched(const Intent& intent)
+bool Handler::isMatched(IntentPtr intent)
 {
-    if (!intent.checkAction()) {
+    if (checkAction(intent->getAction()) == false ||
+        checkUri(intent->getUri()) == false ||
+        checkMime(intent->getMimeType()) == false)
         return false;
-    }
-
-    // If 'id' is there, only 'id' is the key parameter
-    if (!intent.m_id.empty()) {
-        if (m_id == intent.m_id) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    if (getId() == intent.m_id)
-        return true;
-
-    // check 'ACTION'
-    deque<string>::iterator i;
-    i = find_if(m_actions.begin(), m_actions.end(),
-                [&] (const string& action) { return action == intent.m_action; } );
-    if (i == m_actions.end()) {
-        return false;
-    }
-
-    // check URI
-    if (!m_uris.empty()) {
-        for (auto it = m_uris.begin(); it != m_uris.end(); ++it) {
-            // TODO compare 해야함
-        }
-    }
-
-    // check mimeType
-    if (!m_mimeTypes.empty()) {
-        deque<string>::iterator k;
-        k = find_if(m_mimeTypes.begin(), m_mimeTypes.end(),
-                     [&] (const string& mimeType) { return mimeType == intent.m_mimeType; } );
-        if (k == m_mimeTypes.end()) {
-            return false;
-        }
-    }
     return true;
 }
 
 bool Handler::fromJson(const JValue& json)
 {
-    if (json.hasKey("id") && json["id"].isString()) {
-        m_id = json["id"].asString();
-    }
+    JValueUtil::getValue(json, "id", m_id);
+    JValueUtil::getValue(json, "type", m_type);
+    JValueUtil::getValue(json, "priority", m_priority);
 
-    if (json.hasKey("priority") && json["priority"].isNumber()) {
-        m_priority = json["priority"].asNumber<int>();
+    JValueUtil::getValue(json, "actions", m_actions);
+    if (!m_actions.isArray()) {
+        Logger::warning(CLASS_NAME, __FUNCTION__, "'actions' is not array");
+        m_actions = pbnjson::Array();
     }
-
-    if (json.hasKey("type") && json["type"].isString()) {
-        m_type = toEnum(json["type"].asString());
+    JValueUtil::getValue(json, "mimeTypes", m_mimeTypes);
+    if (!m_mimeTypes.isArray()) {
+        Logger::warning(CLASS_NAME, __FUNCTION__, "'mimeTypes' is not array");
+        m_mimeTypes = pbnjson::Array();
     }
-
-    JValue array = pbnjson::Array();
-    getUniqueArray(json["actions"], array);
-    if (array.arraySize() > 0) {
-        m_actions.clear();
-        for (JValue action : array.items()) {
-            m_actions.push_back(action.asString());
-        }
-    }
-
-    array = pbnjson::Array();
-    getUniqueArray(json["mimeTypes"], array);
-    if (array.arraySize() > 0) {
-        m_mimeTypes.clear();
-        for (JValue mimeType : array.items()) {
-            m_mimeTypes.push_back(mimeType.asString());
-        }
-    }
-
-    array = pbnjson::Array();
-    getUniqueArray(json["uris"], array);
-    if (array.arraySize() > 0) {
-        m_uris.clear();
-        for (JValue uri : array.items()) {
-            m_uris.push_back(Uri(uri.asString()));
-        }
+    JValueUtil::getValue(json, "uris", m_uris);
+    if (!m_uris.isArray()) {
+        Logger::warning(CLASS_NAME, __FUNCTION__, "'uris' is not array");
+        m_uris = pbnjson::Array();
     }
     return true;
 }
@@ -152,40 +78,52 @@ bool Handler::fromJson(const JValue& json)
 bool Handler::toJson(JValue& json)
 {
     json.put("id", m_id);
+    json.put("type", m_type);
     json.put("priority", m_priority);
-    json.put("type", toString(m_type));
 
-    JValue actions = pbnjson::Array();
-    for (unsigned int i = 0; i < m_actions.size(); ++i) {
-        actions.append(m_actions[i]);
-    }
-    json.put("actions", actions);
-
-    JValue mimeTypes = pbnjson::Array();
-    for (unsigned int i = 0; i < m_mimeTypes.size(); ++i) {
-        mimeTypes.append(m_mimeTypes[i]);
-    }
-    json.put("mimeTypes", mimeTypes);
-
-    JValue uris = pbnjson::Array();
-    for (unsigned int i = 0; i < m_uris.size(); ++i) {
-        uris.append(m_uris[i].toString());
-    }
-    json.put("uris", uris);
+    json.put("actions", m_actions);
+    json.put("mimeTypes", m_mimeTypes);
+    json.put("uris", m_uris);
 
     return true;
 }
 
-void Handler::getUniqueArray(const JValue& from, JValue& to)
+bool Handler::checkAction(const string& action)
 {
-    map<string, bool> checker;
+    if (action.empty())
+        return true;
 
-    if (!from.isValid() || !from.isArray())
-        return;
-    for (JValue item : from.items()) {
-        if (checker.find(item.asString()) == checker.end()) {
-            checker[item.asString()] = true;
-            to.append(item);
+    for (JValue item : m_actions.items()) {
+        if (item.asString() == action) {
+            return true;
         }
     }
+    return false;
+}
+
+bool Handler::checkUri(const Uri& uri)
+{
+    if (uri.empty())
+        return true;
+
+    Uri uriObj;
+    for (JValue item : m_uris.items()) {
+        if (!uriObj.parse(item.asString())) continue;
+        if (uriObj == uri)
+            return true;
+    }
+    return false;
+}
+
+bool Handler::checkMime(const string& mime)
+{
+    if (mime.empty())
+        return true;
+
+    for (JValue item : m_mimeTypes.items()) {
+        if (item.asString() == mime) {
+            return true;
+        }
+    }
+    return false;
 }

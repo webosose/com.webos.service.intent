@@ -25,9 +25,10 @@
 #include <glib.h>
 #include <boost/bind.hpp>
 
+#include "base/Handlers.h"
 #include "bus/client/SAM.h"
 #include "bus/service/IntentManager.h"
-#include "conf/ConfigFile.h"
+#include "conf/ConfFile.h"
 #include "util/File.h"
 #include "util/JValueUtil.h"
 
@@ -47,16 +48,38 @@ MainDaemon::~MainDaemon()
 
 void MainDaemon::initialize()
 {
-    ConfigFile::getInstance().initialize(m_mainLoop);
+    ConfFile::getInstance().initialize(m_mainLoop);
+    Handlers::getInstance().load();
+
     IntentManager::getInstance().initialize(m_mainLoop);
     SAM::getInstance().initialize(m_mainLoop);
+
+    if (!ConfFile::getInstance().testmode())
+        return;
+
+    JValue& database = ConfFile::getInstance().get();
+    if (!database.hasKey("steps") || !database["steps"].isArray())
+        return;
+
+    for (JValue step : database["steps"].items()) {
+        string type;
+        JValue payload;
+
+        if (JValueUtil::getValue(step, "type", type) && JValueUtil::getValue(step, "payload", payload)) {
+            if (type == "listApps") {
+                SAM::getInstance().listApps(payload);
+            }
+        }
+    }
 }
 
 void MainDaemon::finalize()
 {
     SAM::getInstance().finalize();
     IntentManager::getInstance().finalize();
-    ConfigFile::getInstance().finalize();
+
+    Handlers::getInstance().save();
+    ConfFile::getInstance().finalize();
 }
 
 void MainDaemon::start()

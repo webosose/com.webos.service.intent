@@ -46,11 +46,6 @@ public:
         return m_isFinalized;
     }
 
-    virtual bool isReady()
-    {
-        return m_isReady;
-    }
-
     virtual bool isInitalized()
     {
         return m_isInitalized;
@@ -67,22 +62,14 @@ public:
 protected:
     IInitializable()
         : m_mainloop(nullptr),
-          m_isReady(false),
           m_isInitalized(false),
           m_isFinalized(false)
     {
     };
 
-    void ready()
-    {
-        Logger::info(getClassName(), __FUNCTION__, "Ready");
-        m_isReady = true;
-    }
-
     GMainLoop* m_mainloop;
 
 private:
-    bool m_isReady;
     bool m_isInitalized;
     bool m_isFinalized;
 
