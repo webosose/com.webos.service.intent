@@ -22,63 +22,29 @@
 Handlers::Handlers()
 {
     setClassName("Handlers");
-    m_chooser = make_shared<Intent>();
-    m_chooser->setAction("action_chooser");
 }
 
 Handlers::~Handlers()
 {
 }
 
-void Handlers::save()
+bool Handlers::add(HandlerPtr handler)
 {
-    JValue handlers = pbnjson::Array();
-    toJsonByType(handlers, "runtime");
-
-    if (ConfFile::getInstance().get()["handlers"] != handlers) {
-        ConfFile::getInstance().get().put("handlers", handlers);
-        Logger::info(getClassName(), __FUNCTION__, "Save changed runtime handlers");
-    }
-}
-
-void Handlers::load()
-{
-    JValue handlers = pbnjson::Array();
-
-    JValueUtil::getValue(ConfFile::getInstance().get(), "handlers", handlers);
-    for (JValue item : handlers.items()) {
-        HandlerPtr handler = make_shared<Handler>();
-        handler->fromJson(item);
-        handler->setType("appinfo");
-        Handlers::getInstance().add(handler, "appinfo");
-    }
-}
-
-bool Handlers::add(HandlerPtr handler, const string& type)
-{
-    if (handler == nullptr || !handler->isValid() || handler->getType() != type) {
+    if (handler == nullptr || !handler->hasName()) {
         return false;
     }
 
-    if (getHandler(handler->getId()) != nullptr) {
-        // already existing. Please use update API instead
+    if (hasHandler(handler->getName())) {
         return false;
     }
-
-    for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
-        if ((*it)->getPriority() < handler->getPriority()) {
-            m_handlers.insert(it, handler);
-            return true;
-        }
-    }
-    m_handlers.push_back(handler);
+    m_handlers[handler->getName()] = handler;
     return true;
 }
 
-bool Handlers::remove(const string& id, const string& type)
+bool Handlers::remove(const string& name)
 {
     for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
-        if ((*it)->getId() == id && (*it)->getType() == type) {
+        if (it->second->getName() == name) {
             m_handlers.erase(it);
             return true;
         }
@@ -86,36 +52,25 @@ bool Handlers::remove(const string& id, const string& type)
     return false;
 }
 
-bool Handlers::hasHandler(const string& id)
+bool Handlers::hasHandler(const string& name)
 {
-    for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
-        if ((*it)->getId() == id) {
-            return true;
-        }
-    }
-    return false;
+    if (m_handlers.find(name) == m_handlers.end())
+        return false;
+    return true;
 }
 
-HandlerPtr Handlers::getChooser()
+HandlerPtr Handlers::getHandler(const string& name)
 {
-    return getHandler(m_chooser);
-}
-
-HandlerPtr Handlers::getHandler(const string& id)
-{
-    for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
-        if ((*it)->getId() == id) {
-            return (*it);
-        }
-    }
-    return nullptr;
+    if (m_handlers.find(name) == m_handlers.end())
+        return nullptr;
+    return m_handlers.find(name)->second;
 }
 
 HandlerPtr Handlers::getHandler(IntentPtr intent)
 {
     for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
-        if ((*it)->isMatched(intent)) {
-            return (*it);
+        if (it->second->isMatched(intent)) {
+            return it->second;
         }
     }
     return nullptr;
@@ -129,7 +84,7 @@ bool Handlers::toJson(JValue& array)
 
     for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
         JValue item = pbnjson::Object();
-        (*it)->toJson(item);
+        it->second->toJson(item);
         array.append(item);
     }
     return true;
@@ -142,39 +97,10 @@ bool Handlers::toJson(JValue& array, IntentPtr intent)
     }
 
     for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
-        if (!(*it)->isMatched(intent)) continue;
+        if (!it->second->isMatched(intent)) continue;
         JValue item = pbnjson::Object();
-        (*it)->toJson(item);
+        it->second->toJson(item);
         array.append(item);
     }
-    return true;
-}
-
-bool Handlers::toJsonByType(JValue& array, const string& type)
-{
-    if (!array.isArray()) {
-        array = pbnjson::Array();
-    }
-
-    for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
-        if ((*it)->getType() != type) continue;
-        JValue item = pbnjson::Object();
-        (*it)->toJson(item);
-        array.append(item);
-    }
-    return true;
-}
-
-bool Handlers::toJsonByID(JValue& json, const string& id)
-{
-    if (!json.isObject()) {
-        json = pbnjson::Object();
-    }
-
-    HandlerPtr handler = getHandler(id);
-    if (handler == nullptr)
-        return false;
-
-    handler->toJson(json);
     return true;
 }

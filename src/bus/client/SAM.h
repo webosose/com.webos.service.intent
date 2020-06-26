@@ -34,13 +34,14 @@ friend class ISingleton<SAM>;
 public:
     virtual ~SAM();
 
-    bool launch(IntentPtr intent, HandlerPtr handler);
-    void listApps(JValue& subscriptionPayload);
+    // API
+    int launch(IntentPtr intent, HandlerPtr handler);
 
 protected:
     virtual void onServerStatusChanged(bool isConnected) override;
 
 private:
+    static bool _launch(LSHandle* sh, LSMessage* reply, void* ctx);
     static bool _listApps(LSHandle* sh, LSMessage* reply, void* ctx);
 
     SAM();

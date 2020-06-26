@@ -21,7 +21,7 @@
 #include <fstream>
 #include <gio/gio.h>
 
-#include "MainDaemon.h"
+#include "core/MainDaemon.h"
 #include "util/Logger.h"
 #include "util/File.h"
 

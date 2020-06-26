@@ -33,12 +33,7 @@ friend class ISingleton<ConfFile>;
 public:
     virtual ~ConfFile();
 
-    virtual JValue& get();
-
-    virtual bool testmode()
-    {
-        return m_testmode;
-    }
+    virtual bool getIntentFilter(const string& appId, JValue& intentFilter);
 
 protected:
     virtual bool onInitialization() override;
@@ -50,7 +45,6 @@ private:
     static const string PATH_DATABASE;
 
     JValue m_database;
-    bool m_testmode;
 };
 
 #endif /* CONF_CONFFILE_H_ */

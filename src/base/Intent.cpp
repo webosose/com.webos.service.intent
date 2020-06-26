@@ -22,14 +22,12 @@
 const string Intent::CLASS_NAME = "Intent";
 
 Intent::Intent()
-    : m_requester(""),
+    : m_intentId(-1),
       m_action(""),
       m_mimeType(""),
       m_result(""),
-      m_uri(""),
-      m_chooser(false),
-      m_uriObj()
-
+      m_uri(),
+      m_owner("")
 {
     m_extra = pbnjson::Object();
 }
@@ -41,25 +39,39 @@ Intent::~Intent()
 
 bool Intent::fromJson(const JValue& json)
 {
-    JValueUtil::getValue(json, "requester", m_requester);
+    if (json.isNull() || !json.isValid())
+        return false;
+
+    JValueUtil::getValue(json, "intentId", m_intentId);
+    JValueUtil::getValue(json, "name", m_name);
     JValueUtil::getValue(json, "action", m_action);
     JValueUtil::getValue(json, "mimeType", m_mimeType);
     JValueUtil::getValue(json, "result", m_result);
     JValueUtil::getValue(json, "extra", m_extra);
-    JValueUtil::getValue(json, "chooser", m_chooser);
-    if (JValueUtil::getValue(json, "uri", m_uri)) {
-        m_uriObj.parse(m_uri);
+    if (json.hasKey("uri")) {
+        m_uri.parse(json["uri"].asString());
     }
     return true;
 }
 
 bool Intent::toJson(JValue& json)
 {
-    json.put("requester", m_requester);
-    json.put("action", m_action);
-    json.put("uri", m_uriObj.toString());
-    json.put("mimeType", m_mimeType);
-    json.put("result", m_result);
-    json.put("extra", m_extra.duplicate());
+    if (json.isNull() || !json.isValid())
+        json = pbnjson::Object();
+
+    if (m_intentId != -1)
+        json.put("intentId", m_intentId);
+    if (!m_name.empty())
+        json.put("name", m_name);
+    if (!m_action.empty())
+        json.put("action", m_action);
+    if (!m_uri.empty())
+        json.put("uri", m_uri.toString());
+    if (!m_mimeType.empty())
+        json.put("mimeType", m_mimeType);
+    if (!m_result.empty())
+        json.put("result", m_result);
+    if (m_extra.objectSize() != 0)
+        json.put("extra", m_extra.duplicate());
     return true;
 }

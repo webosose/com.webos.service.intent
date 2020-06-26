@@ -14,17 +14,19 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+#include "SAM.h"
+
+#include "core/IntentManager.h"
 #include "base/Handler.h"
 #include "base/Handlers.h"
-#include "bus/client/SAM.h"
-#include "bus/service/IntentManager.h"
+#include "base/Intents.h"
 #include "conf/ConfFile.h"
 #include "util/Logger.h"
 
 SAM::SAM()
     : AbsLunaClient("com.webos.service.applicationmanager")
 {
-    setClassName("ApplicationManager");
+    setClassName("SAM");
 }
 
 SAM::~SAM()
@@ -46,75 +48,94 @@ void SAM::onServerStatusChanged(bool isConnected)
     }
 }
 
-bool SAM::launch(IntentPtr intent, HandlerPtr handler)
+int SAM::launch(IntentPtr intent, HandlerPtr handler)
 {
-    static const string API = string("luna://") + m_name + string("/launch");
-
+    static string method = string("luna://") + m_name + string("/launch");
     pbnjson::JValue requestPayload = pbnjson::Object();
-    requestPayload.put("id", handler->getId());
-
     pbnjson::JValue params = pbnjson::Object();
-    params.put("requester", intent->getRequester());
-    params.put("action", intent->getAction());
-    params.put("uri", intent->getUri().toString());
-    if (!intent->getExtra().isNull())
-        params.put("extra", intent->getExtra());
-    requestPayload.put("params", params);
 
-    try {
-        auto call = IntentManager::getInstance().callOneReply(
-            API.c_str(),
-            requestPayload.stringify().c_str()
-        );
-        auto reply = call.get(5000);
+    intent->toJson(params);
+    requestPayload.put("params", params);
+    requestPayload.put("id", handler->getName());
+
+    LSErrorSafe error;
+    LSMessageToken token = 0;
+    Logger::logCallRequest(getClassName(), __FUNCTION__, method, requestPayload);
+    if (!LSCallOneReply(
+        IntentManager::getInstance().get(),
+        method.c_str(),
+        requestPayload.stringify().c_str(),
+        _launch,
+        nullptr,
+        &token,
+        &error
+    )) {
+        Logger::error(getInstance().getClassName(), __FUNCTION__, error.message);
+        return -1;
     }
-    catch (const LS::Error &e) {
-        Logger::error(getClassName(), __FUNCTION__, e.what());
-    }
-    return true;
+    return token;
 }
 
-void SAM::listApps(JValue& subscriptionPayload)
+bool SAM::_launch(LSHandle* sh, LSMessage* reply, void* ctx)
 {
-    JValue apps;
+    Message response(reply);
+    JValue responsePayload = JDomParser::fromString(response.getPayload());
 
-    if (!JValueUtil::getValue(subscriptionPayload, "apps", apps) || !apps.isArray()) {
-        Logger::error(SAM::getInstance().getClassName(), __FUNCTION__, "Failed to get 'apps' in subscriptionPayload");
-        return;
+    Logger::logCallResponse(getInstance().getClassName(), __FUNCTION__, response, responsePayload);
+    int intentId = response.getResponseToken();
+
+    IntentPtr intent = Intents::getInstance().get(intentId);
+    if (intent == nullptr) {
+        Logger::error(getInstance().getClassName(), __FUNCTION__, "Cannot find intent");
+        return true;
     }
 
-    for (JValue application : subscriptionPayload["apps"].items()) {
-        string id = "";
-        if (!JValueUtil::getValue(application, "id", id)) {
-            Logger::warning(SAM::getInstance().getClassName(), __FUNCTION__, "'id' is empty");
-            continue;
-        }
-        if (!application.hasKey("intentFilter")) {
-            Logger::debug(SAM::getInstance().getClassName(), __FUNCTION__, id, "'intentFilter' is null");
-            continue;
-        }
-
-        HandlerPtr handler = make_shared<Handler>();
-        handler->fromJson(application["intentFilter"]);
-        handler->setId(id);
-        handler->setType("appinfo");
-        if (!Handlers::getInstance().add(handler, "appinfo")) {
-            Logger::error(SAM::getInstance().getClassName(), handler->getId(), "Failed to register handler");
-        }
-    }
+    intent->respond(responsePayload.stringify());
+    return true;
 }
 
 bool SAM::_listApps(LSHandle* sh, LSMessage* reply, void* ctx)
 {
     Message response(reply);
     JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
-    Logger::logSubscriptionResponse(getInstance().getClassName(), __FUNCTION__, response, subscriptionPayload);
     bool returnValue = false;
+
     JValueUtil::getValue(subscriptionPayload, "returnValue", returnValue);
+    // Let's avoid too many logs
+    // Logger::logSubscriptionResponse(getInstance().getClassName(), __FUNCTION__, response, subscriptionPayload);
+
     if (response.isHubError() || !returnValue) {
         Logger::error(SAM::getInstance().getClassName(), __FUNCTION__, std::string(response.getPayload()));
         return true;
     }
-    getInstance().listApps(subscriptionPayload);
+
+    JValue apps;
+    if (!JValueUtil::getValue(subscriptionPayload, "apps", apps) || !apps.isArray()) {
+        Logger::error(SAM::getInstance().getClassName(), __FUNCTION__, "Failed to get 'apps' in subscriptionPayload");
+        return true;
+    }
+
+    for (JValue application : apps.items()) {
+        string id = "";
+        JValue intentFilters;
+
+        if (!JValueUtil::getValue(application, "id", id)) {
+            Logger::warning(SAM::getInstance().getClassName(), __FUNCTION__, "'id' is empty");
+            continue;
+        }
+
+        if (!JValueUtil::getValue(application, "intentFilters", intentFilters)) {
+            ConfFile::getInstance().getIntentFilter(id, intentFilters);
+        }
+
+        HandlerPtr handler = make_shared<Handler>();
+        handler->setName(id);
+        handler->setIntentFilters(intentFilters);
+        if (!Handlers::getInstance().add(handler)) {
+            Logger::error(SAM::getInstance().getClassName(), handler->getName(), "Failed to register handler");
+        }
+    }
+
+
     return true;
 }

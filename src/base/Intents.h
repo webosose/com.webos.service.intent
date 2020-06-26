@@ -14,42 +14,35 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BASE_HANDLERS_H_
-#define BASE_HANDLERS_H_
+#ifndef BASE_INTENTS_H_
+#define BASE_INTENTS_H_
 
 #include <iostream>
 #include <map>
 
-#include "Handler.h"
+#include "base/Intent.h"
 #include "interface/IClassName.h"
 #include "interface/ISingleton.h"
-#include "interface/ISerializable.h"
 
 using namespace std;
 
-class Handlers : public IClassName,
-                 public ISingleton<Handlers>,
-                 public ISerializable {
-friend class ISingleton<Handlers>;
+class Intents : public IClassName,
+                public ISingleton<Intents> {
+friend class ISingleton<Intents>;
 public:
-    virtual ~Handlers();
+    virtual ~Intents();
 
-    virtual bool add(HandlerPtr handler);
-    virtual bool remove(const string& name);
+    void add(IntentPtr intent);
+    void remove(int intentId);
+    void removeByOwner(const string& owner);
 
-    virtual bool hasHandler(const string& name);
-    virtual HandlerPtr getHandler(const string& name);
-    virtual HandlerPtr getHandler(IntentPtr intent);
-
-    // ISerializable
-    virtual bool toJson(JValue& array) override;
-    virtual bool toJson(JValue& array, IntentPtr intent);
+    IntentPtr get(int intentId);
 
 private:
-    Handlers();
+    Intents();
 
-    map<string, HandlerPtr> m_handlers;
+    map<int, IntentPtr> m_intents;
 
 };
 
-#endif /* BASE_HANDLERS_H_ */
+#endif /* BASE_INTENTS_H_ */

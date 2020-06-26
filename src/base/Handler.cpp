@@ -24,13 +24,9 @@
 const string Handler::CLASS_NAME = "Handler";
 
 Handler::Handler()
-    : m_id(""),
-      m_type(""),
-      m_priority(0)
+    : m_name("")
 {
-    m_actions = pbnjson::Array();
-    m_mimeTypes = pbnjson::Array();
-    m_uris = pbnjson::Array();
+    m_intentFilters = pbnjson::Array();
 }
 
 Handler::~Handler()
@@ -44,86 +40,103 @@ bool Handler::launch(Intent intent)
 
 bool Handler::isMatched(IntentPtr intent)
 {
-    if (checkAction(intent->getAction()) == false ||
-        checkUri(intent->getUri()) == false ||
-        checkMime(intent->getMimeType()) == false)
+    // explicit intent
+    if (!intent->getName().empty()) {
+        if (m_name == intent->getName())
+            return true;
         return false;
-    return true;
-}
+    }
 
-bool Handler::fromJson(const JValue& json)
-{
-    JValueUtil::getValue(json, "id", m_id);
-    JValueUtil::getValue(json, "type", m_type);
-    JValueUtil::getValue(json, "priority", m_priority);
-
-    JValueUtil::getValue(json, "actions", m_actions);
-    if (!m_actions.isArray()) {
-        Logger::warning(CLASS_NAME, __FUNCTION__, "'actions' is not array");
-        m_actions = pbnjson::Array();
+    // implicit intent
+    for (JValue intentFilter : m_intentFilters.items()) {
+        if (compareIntentFilter(intentFilter, intent))
+            return true;
     }
-    JValueUtil::getValue(json, "mimeTypes", m_mimeTypes);
-    if (!m_mimeTypes.isArray()) {
-        Logger::warning(CLASS_NAME, __FUNCTION__, "'mimeTypes' is not array");
-        m_mimeTypes = pbnjson::Array();
-    }
-    JValueUtil::getValue(json, "uris", m_uris);
-    if (!m_uris.isArray()) {
-        Logger::warning(CLASS_NAME, __FUNCTION__, "'uris' is not array");
-        m_uris = pbnjson::Array();
-    }
-    return true;
+    return false;
 }
 
 bool Handler::toJson(JValue& json)
 {
-    json.put("id", m_id);
-    json.put("type", m_type);
-    json.put("priority", m_priority);
-
-    json.put("actions", m_actions);
-    json.put("mimeTypes", m_mimeTypes);
-    json.put("uris", m_uris);
-
+    json.put("name", m_name);
+    json.put("intentFilters", m_intentFilters);
     return true;
 }
 
-bool Handler::checkAction(const string& action)
+bool Handler::compareIntentFilter(JValue& intentFilter, IntentPtr intent)
 {
-    if (action.empty())
-        return true;
+    JValue actions;
+    if (intent->hasAction()) { // This might be always true because 'empty' action is not allowed.
+        if (!JValueUtil::getValue(intentFilter, "actions", actions) || !actions.isArray()) {
+            return false;
+        }
+        if (!compareString(actions, intent->getAction())) {
+            return false;
+        }
+    }
 
-    for (JValue item : m_actions.items()) {
-        if (item.asString() == action) {
+    JValue uris;
+    JValue mimeTypes;
+    if (intent->hasUri() && intent->hasMimeType()) {
+        if (!JValueUtil::getValue(intentFilter, "uris", uris) || !uris.isArray()) {
+            return false;
+        }
+        if (!JValueUtil::getValue(intentFilter, "mimeTypes", mimeTypes) || !mimeTypes.isArray()) {
+            return false;
+        }
+        if (!compareUri(uris, intent->getUri())) {
+            return false;
+        }
+        if (!compareString(mimeTypes, intent->getMimeType())) {
+            return false;
+        }
+    } else if (intent->hasUri() && !intent->hasMimeType()) {
+        if (intentFilter.hasKey("mimeTypes")) {
+            return false;
+        }
+        if (!JValueUtil::getValue(intentFilter, "uris", uris) || !uris.isArray()) {
+            return false;
+        }
+        if (!compareUri(uris, intent->getUri())) {
+            return false;
+        }
+    } else if (!intent->hasUri() && intent->hasMimeType()) {
+        if (intentFilter.hasKey("uris")) {
+            return false;
+        }
+        if (!JValueUtil::getValue(intentFilter, "mimeTypes", mimeTypes) || !mimeTypes.isArray()) {
+            return false;
+        }
+        if (!compareString(mimeTypes, intent->getMimeType())) {
+            return false;
+        }
+    } else {
+        if (intentFilter.hasKey("uris") || intentFilter.hasKey("mimeTypes")) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Handler::compareString(JValue& array, const string& target)
+{
+    for (JValue item : array.items()) {
+        if (item.asString() == target) {
             return true;
         }
     }
     return false;
 }
 
-bool Handler::checkUri(const Uri& uri)
+bool Handler::compareUri(JValue& uris, const Uri& b)
 {
-    if (uri.empty())
+    if (b.empty())
         return true;
 
-    Uri uriObj;
-    for (JValue item : m_uris.items()) {
-        if (!uriObj.parse(item.asString())) continue;
-        if (uriObj == uri)
+    Uri a;
+    for (JValue item : uris.items()) {
+        if (a.parse(item.asString()) == false) continue;
+        if (Uri::compare(a, b))
             return true;
-    }
-    return false;
-}
-
-bool Handler::checkMime(const string& mime)
-{
-    if (mime.empty())
-        return true;
-
-    for (JValue item : m_mimeTypes.items()) {
-        if (item.asString() == mime) {
-            return true;
-        }
     }
     return false;
 }

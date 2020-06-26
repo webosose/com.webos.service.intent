@@ -14,8 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BUS_SERVICE_INTENTMANAGER_H_
-#define BUS_SERVICE_INTENTMANAGER_H_
+#ifndef CORE_INTENTMANAGER_H_
+#define CORE_INTENTMANAGER_H_
 
 #include <iostream>
 #include <queue>
@@ -38,13 +38,12 @@ public:
     virtual ~IntentManager();
 
     // APIs
-    bool launch(LSMessage &message);
-    bool finish(LSMessage &message);
-    bool resolve(LSMessage &message);
-    bool getHandler(LSMessage &message);
-    bool updateHandler(LSMessage &message);
-    bool registerHandler(LSMessage &message);
-    bool unregisterHandler(LSMessage &message);
+    bool query(LSMessage &message);
+    bool start(LSMessage &message);
+    bool sendResult(LSMessage &message);
+    bool subscribeResult(LSMessage &message);
+
+    void subscribeStatus(const string& name);
 
 protected:
     // IManageable
@@ -52,8 +51,11 @@ protected:
     virtual bool onFinalization() override;
 
 private:
+    static bool _onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context);
+    static string getName(LS::Message& request);
+
     IntentManager();
 
 };
 
-#endif /* BUS_SERVICE_INTENTMANAGER_H_ */
+#endif /* CORE_INTENTMANAGER_H_ */

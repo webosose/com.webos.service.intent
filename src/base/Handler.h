@@ -19,7 +19,6 @@
 
 #include <iostream>
 #include <deque>
-#include <map>
 
 #include "base/Intent.h"
 #include "base/Uri.h"
@@ -37,90 +36,51 @@ public:
     virtual bool isMatched(IntentPtr intent);
 
     // ISerializable
-    virtual bool fromJson(const JValue& json) override;
     virtual bool toJson(JValue& json) override;
 
-    void setId(string id)
+    void setName(string name)
     {
-        m_id = id;
+        m_name = name;
     }
-    const string& getId() const
+    const string& getName() const
     {
-        return m_id;
+        return m_name;
     }
-
-    void setType(const string& type)
+    bool hasName()
     {
-        m_type = type;
-    }
-    const string& getType()
-    {
-        return m_type;
+        return !m_name.empty();
     }
 
-    void setPriority(const int& priority)
+    void setIntentFilters(JValue& intentFilters)
     {
-        m_priority = priority;
+        if (!intentFilters.isNull() && intentFilters.isValid()) {
+            m_intentFilters = intentFilters.duplicate();
+        }
     }
-    const int& getPriority()
+    const JValue& getIntentFilters() const
     {
-        return m_priority;
+        return m_intentFilters;
     }
-
-    void setActions(const JValue& actions)
+    bool hasIntentFilters()
     {
-        if (!actions.isArray())
-            return;
-        m_actions = actions.duplicate();
-    }
-    const JValue& getActions()
-    {
-        return m_actions;
-    }
-
-    void setMimeTypes(const JValue& mimeTypes)
-    {
-        if (!mimeTypes.isArray())
-            return;
-        m_mimeTypes = mimeTypes.duplicate();
-    }
-    const JValue& getMimeTypes()
-    {
-        return m_mimeTypes;
-    }
-
-    void setUris(const JValue& uris)
-    {
-        if (!uris.isArray())
-            return;
-        m_uris = uris.duplicate();
-    }
-    const JValue& getUris()
-    {
-        return m_uris;
-    }
-
-    const bool isValid()
-    {
-        if (m_id.empty() || m_type.empty() || m_priority < 0 || m_actions.arraySize() <= 0)
-            return false;
-        return true;
+        return (m_intentFilters.arraySize() != 0);
     }
 
 private:
-    bool checkAction(const string& action);
-    bool checkUri(const Uri& uri);
-    bool checkMime(const string& mime);
+    // ISerializable
+    virtual bool fromJson(const JValue& json) override { return false; };
+
+    bool compareIntentFilter(JValue& intentFilter, IntentPtr intent);
+    bool compareString(JValue& actions, const string& action);
+    bool compareUri(JValue& uris, const Uri& b);
+    bool checkMime(JValue& mimeTypes, const string& mimeType);
 
     const static string CLASS_NAME;
 
-    string m_id;
-    string m_type;  // "appinfo", "runtime"
-    int m_priority;
+    string m_name;
+    JValue m_intentFilters;
 
-    JValue m_actions;
-    JValue m_mimeTypes;
-    JValue m_uris;
+    deque<IntentPtr> m_intents;
 };
 
 typedef shared_ptr<Handler> HandlerPtr;

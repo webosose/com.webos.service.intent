@@ -19,11 +19,15 @@
 
 #include <iostream>
 
+#include <luna-service2++/message.hpp>
+
 #include "base/Uri.h"
 #include "interface/ISerializable.h"
 #include "interface/IClassName.h"
 
 using namespace std;
+
+typedef shared_ptr<LS::Message> MessagePtr;
 
 class Intent : public ISerializable {
 public:
@@ -34,13 +38,22 @@ public:
     virtual bool fromJson(const JValue& json) override;
     virtual bool toJson(JValue& json) override;
 
-    void setRequester(const string& requester)
+    void setIntentId(const int& intentId)
     {
-        m_requester = requester;
+        m_intentId = intentId;
     }
-    const string& getRequester()
+    const int getIntentId()
     {
-        return m_requester;
+        return m_intentId;
+    }
+
+    void setName(const string& name)
+    {
+        m_name = name;
+    }
+    const string& getName()
+    {
+        return m_name;
     }
 
     void setAction(const string& action)
@@ -51,15 +64,18 @@ public:
     {
         return m_action;
     }
-
-    const Uri& getUri() const
+    bool hasAction()
     {
-        return m_uriObj;
+        return !m_action.empty();
     }
 
     const string& getMimeType() const
     {
         return m_mimeType;
+    }
+    bool hasMimeType()
+    {
+        return !m_mimeType.empty();
     }
 
     const JValue& getExtra()
@@ -72,30 +88,62 @@ public:
         return m_result;
     }
 
-    const bool chooser()
+    const Uri& getUri() const
     {
-        return m_chooser;
+        return m_uri;
+    }
+    bool hasUri()
+    {
+        return !m_uri.empty();
     }
 
-    virtual bool isValid() const
+    void setOwner(const string& owner)
     {
-        if (m_requester.empty() || m_action.empty() || m_uriObj.empty())
-            return false;
+        m_owner = owner;
+    }
+    const string& getOwner()
+    {
+        return m_owner;
+    }
+
+    void addSubscriber(MessagePtr subscriber)
+    {
+        m_subscribers.push_back(subscriber);
+    }
+
+    bool isValid()
+    {
+        if (!m_name.empty()) {
+            return true;
+        }
+        if (!m_action.empty())
+            return true;
+        return false;
+    }
+
+    bool respond(const string& responsePayload)
+    {
+        for (auto it = m_subscribers.begin(); it != m_subscribers.end(); ++it) {
+            (*it)->respond(responsePayload.c_str());
+        }
         return true;
     }
 
 private:
     const static string CLASS_NAME;
 
-    string m_requester;
+    int m_intentId;
+    string m_name;
     string m_action;
     string m_mimeType;
-    string m_result;
-    string m_uri;
-    JValue m_extra;
-    bool m_chooser;
 
-    Uri m_uriObj;
+    string m_result;
+    JValue m_extra;
+
+    Uri m_uri;
+
+    string m_owner;
+    deque<MessagePtr> m_subscribers;
 };
 
 typedef shared_ptr<Intent> IntentPtr;

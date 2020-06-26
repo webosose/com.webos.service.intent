@@ -26,6 +26,8 @@ using namespace std;
 
 class Uri {
 public:
+    static bool compare(const Uri& a, const Uri& b);
+
     Uri();
     Uri(const string& str);
     virtual ~Uri();
@@ -43,8 +45,6 @@ public:
 
     bool isMatched()  const;
     bool empty()      const { return m_empty; }
-
-    bool operator==(const Uri& another);
 
 private:
     string m_uri;

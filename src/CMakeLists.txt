@@ -57,6 +57,3 @@ target_link_libraries(${BIN_NAME} ${LIBS})
 
 # Install
 install(TARGETS ${BIN_NAME} DESTINATION ${WEBOS_INSTALL_SBINDIR})
-
-# tests
-webos_build_configured_file(src/test/test_default.json WEBOS_SYSCONFDIR "")

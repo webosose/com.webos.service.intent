@@ -58,10 +58,8 @@ AbsLunaClient::~AbsLunaClient()
 
 bool AbsLunaClient::onInitialization()
 {
-    if (ConfFile::getInstance().testmode())
-        return true;
-
     m_statusCall.cancel();
+
     JValue requestPayload = pbnjson::Object();
     requestPayload.put("serviceName", m_name);
     m_statusCall = IntentManager::getInstance().callMultiReply(

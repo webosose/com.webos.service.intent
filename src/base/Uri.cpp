@@ -16,6 +16,14 @@
 
 #include "Uri.h"
 
+bool Uri::compare(const Uri& a, const Uri& b)
+{
+    if (!a.m_scheme.empty() && a.m_scheme != b.m_scheme) return false;
+    if (!a.m_host.empty() && a.m_host != b.m_host) return false;
+    if (!a.m_path.empty() && a.m_path != b.m_path) return false;
+    return true;
+}
+
 Uri::Uri()
     : m_uri(""),
       m_scheme(""),
@@ -70,15 +78,9 @@ bool Uri::parse(const string& str)
         // For debugging purpose.
         printf("scheme(%s) host(%s) path(%s) query(%s) fragment(%s)\n", m_scheme.c_str(), m_host.c_str(), m_path.c_str(), m_query.c_str(), m_fragment.c_str());
 
+        // TODO should check dependancy path --> host --> scheme
+
         m_empty = false;
     }
     return !m_empty;
-}
-
-bool Uri::operator==(const Uri& another)
-{
-    if (!m_scheme.empty() && m_scheme != another.m_scheme) return false;
-    if (!m_host.empty() && m_host != another.m_host) return false;
-    if (!m_path.empty() && m_path != another.m_path) return false;
-    return true;
 }

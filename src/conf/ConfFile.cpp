@@ -19,11 +19,11 @@
 #include <fstream>
 
 #include "util/Logger.h"
+#include "util/JValueUtil.h"
 
-const string ConfFile::PATH_DATABASE = "/var/preferences/com.webos.service.intent.json";
+const string ConfFile::PATH_DATABASE = "/etc/palm/com.webos.service.intent.json";
 
 ConfFile::ConfFile()
-    : m_testmode(false)
 {
     setClassName("ConfigManager");
 }
@@ -34,42 +34,35 @@ ConfFile::~ConfFile()
 
 bool ConfFile::onInitialization()
 {
-    const char* testfile = std::getenv("TESTFILE");
-
-    if (testfile != nullptr) {
-        m_database = JDomParser::fromFile(testfile);
-    }
-    if (!m_database.isNull()) {
-        m_testmode = true;
-        Logger::info(getClassName(), __FUNCTION__, "TEST MODE");
-    } else {
-        m_database = JDomParser::fromFile(PATH_DATABASE.c_str());
-        m_testmode = false;
-        Logger::info(getClassName(), __FUNCTION__, "NORMAL MODE");
-    }
+    m_database = JDomParser::fromFile(PATH_DATABASE.c_str());
     if (m_database.isNull()) {
         Logger::info(getClassName(), __FUNCTION__, "The database file is empty.");
         m_database = pbnjson::Object();
+    } else {
+        Logger::info(getClassName(), __FUNCTION__, "The database file is loaded.");
     }
     return true;
 }
 
 bool ConfFile::onFinalization()
 {
-    if (!m_testmode) {
-        ofstream out(PATH_DATABASE.c_str());
-        if (!out.is_open()) {
-            Logger::error(getClassName(), __FUNCTION__, "Failed to open database file");
-            return true;
-        }
-        Logger::info(getClassName(), __FUNCTION__, "Database is saved");
-        out << m_database.stringify("    ");
-        out.close();
+    ofstream out(PATH_DATABASE.c_str());
+    if (!out.is_open()) {
+        Logger::error(getClassName(), __FUNCTION__, "Failed to open database file");
+        return true;
     }
+    Logger::info(getClassName(), __FUNCTION__, "Database is saved");
+    out << m_database.stringify("    ");
+    out.close();
     return true;
 }
 
-JValue& ConfFile::get()
+bool ConfFile::getIntentFilter(const string& appId, JValue& intentFilter)
 {
-    return m_database;
+    if (!m_database.hasKey("handlers") || !m_database["handlers"].hasKey(appId))
+        return false;
+    if (!m_database["handlers"][appId].isArray())
+        return false;
+    intentFilter = m_database["handlers"][appId];
+    return true;
 }
