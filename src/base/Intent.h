@@ -20,6 +20,7 @@
 #include <iostream>
 
 #include <luna-service2++/message.hpp>
+#include <luna-service2++/subscription.hpp>
 
 #include "base/Uri.h"
 #include "interface/ISerializable.h"
@@ -38,28 +39,15 @@ public:
     virtual bool fromJson(const JValue& json) override;
     virtual bool toJson(JValue& json) override;
 
-    void setIntentId(const int& intentId)
-    {
-        m_intentId = intentId;
-    }
-    const int getIntentId()
-    {
-        return m_intentId;
-    }
-
-    void setName(const string& name)
-    {
-        m_name = name;
-    }
     const string& getName()
     {
         return m_name;
     }
-
-    void setAction(const string& action)
+    bool hasName()
     {
-        m_action = action;
+        return !m_name.empty();
     }
+
     const string& getAction() const
     {
         return m_action;
@@ -83,11 +71,6 @@ public:
         return m_extra;
     }
 
-    const string& getResult()
-    {
-        return m_result;
-    }
-
     const Uri& getUri() const
     {
         return m_uri;
@@ -95,6 +78,37 @@ public:
     bool hasUri()
     {
         return !m_uri.empty();
+    }
+
+    void setIntentId(const int& intentId)
+    {
+        m_intentId = intentId;
+    }
+    const int getIntentId()
+    {
+        return m_intentId;
+    }
+
+    void setResult(const string& result)
+    {
+        m_result = result;
+    }
+    const string& getResult()
+    {
+        return m_result;
+    }
+
+    void setSessionId(const string& sessionId)
+    {
+        m_sessionId = sessionId;
+    }
+    const string& getSessionId()
+    {
+        return m_sessionId;
+    }
+    bool hasSessionId()
+    {
+        return !m_sessionId.empty();
     }
 
     void setOwner(const string& owner)
@@ -106,9 +120,9 @@ public:
         return m_owner;
     }
 
-    void addSubscriber(MessagePtr subscriber)
+    void addSubscriber(LS::Message &request)
     {
-        m_subscribers.push_back(subscriber);
+        m_subscriptionPoint.subscribe(request);
     }
 
     bool isValid()
@@ -123,27 +137,27 @@ public:
 
     bool respond(const string& responsePayload)
     {
-        for (auto it = m_subscribers.begin(); it != m_subscribers.end(); ++it) {
-            (*it)->respond(responsePayload.c_str());
-        }
-        return true;
+        return m_subscriptionPoint.post(responsePayload.c_str());
     }
 
 private:
     const static string CLASS_NAME;
 
-    int m_intentId;
+    // Intent inner
     string m_name;
     string m_action;
     string m_mimeType;
-
-    string m_result;
+    Uri m_uri;
     JValue m_extra;
 
-    Uri m_uri;
-
+    // Intent outer
+    int m_intentId;
+    string m_result;
+    string m_sessionId;
     string m_owner;
-    deque<MessagePtr> m_subscribers;
+
+    // runtime values
+    LS::SubscriptionPoint m_subscriptionPoint;
 };
 
 typedef shared_ptr<Intent> IntentPtr;

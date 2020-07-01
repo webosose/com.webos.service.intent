@@ -30,6 +30,12 @@ class Intents : public IClassName,
                 public ISingleton<Intents> {
 friend class ISingleton<Intents>;
 public:
+    static string toString(IntentPtr intent)
+    {
+        static char buffer[1024];
+        snprintf(buffer, 1024, "intentId(%d), owner(%s)", intent->getIntentId(), intent->getOwner().c_str());
+        return string(buffer);
+    }
     virtual ~Intents();
 
     void add(IntentPtr intent);
@@ -40,6 +46,9 @@ public:
 
 private:
     Intents();
+
+    void onRemove(IntentPtr intent);
+    void onAdd(IntentPtr intent);
 
     map<int, IntentPtr> m_intents;
 

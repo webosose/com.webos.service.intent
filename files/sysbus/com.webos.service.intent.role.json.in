@@ -6,7 +6,8 @@
         {
             "service":"com.webos.service.intent",
             "outbound": [
-                "com.webos.service.applicationmanager"
+                "com.webos.service.applicationmanager",
+                "com.webos.service.sessionmanager"
             ]
         }
     ]

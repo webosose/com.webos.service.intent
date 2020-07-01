@@ -25,9 +25,10 @@
 #include <glib.h>
 #include <boost/bind.hpp>
 
-#include "core/IntentManager.h"
 #include "base/Handlers.h"
-#include "bus/client/SAM.h"
+#include "bus/session/SAM.h"
+#include "bus/host/SessionManager.h"
+#include "core/IntentManager.h"
 #include "conf/ConfFile.h"
 #include "util/File.h"
 #include "util/JValueUtil.h"
@@ -51,7 +52,7 @@ void MainDaemon::initialize()
     try {
         ConfFile::getInstance().initialize(m_mainLoop);
         IntentManager::getInstance().initialize(m_mainLoop);
-        SAM::getInstance().initialize(m_mainLoop);
+        SessionManager::getInstance().initialize(m_mainLoop);
     } catch(...) {
         Logger::info(getClassName(), __FUNCTION__, "Failed to initialize service");
     }
@@ -59,7 +60,7 @@ void MainDaemon::initialize()
 
 void MainDaemon::finalize()
 {
-    SAM::getInstance().finalize();
+    SessionManager::getInstance().finalize();
     IntentManager::getInstance().finalize();
     ConfFile::getInstance().finalize();
 }

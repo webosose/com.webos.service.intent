@@ -14,7 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "AbsLunaClient.h"
+#include "bus/AbsLunaClient.h"
 
 #include "conf/ConfFile.h"
 
@@ -58,10 +58,12 @@ AbsLunaClient::~AbsLunaClient()
 
 bool AbsLunaClient::onInitialization()
 {
-    m_statusCall.cancel();
-
     JValue requestPayload = pbnjson::Object();
     requestPayload.put("serviceName", m_name);
+    if (!m_sessionId.empty())
+        requestPayload.put("sessionId", m_sessionId);
+
+    m_statusCall.cancel();
     m_statusCall = IntentManager::getInstance().callMultiReply(
         "luna://com.webos.service.bus/signal/registerServerStatus",
         requestPayload.stringify().c_str(),

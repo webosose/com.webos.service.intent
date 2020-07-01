@@ -1,5 +1,6 @@
 {
     "com.webos.service.intent": [
-        "applications.internal"
+        "applications.internal",
+        "session.management"
     ]
 }

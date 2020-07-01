@@ -16,19 +16,16 @@
 
 #include "Intent.h"
 
+#include "core/IntentManager.h"
 #include "util/JValueUtil.h"
 #include "util/Logger.h"
 
 const string Intent::CLASS_NAME = "Intent";
 
 Intent::Intent()
-    : m_intentId(-1),
-      m_action(""),
-      m_mimeType(""),
-      m_result(""),
-      m_uri(),
-      m_owner("")
+    : m_intentId(-1)
 {
+    m_subscriptionPoint.setServiceHandle(&IntentManager::getInstance());
     m_extra = pbnjson::Object();
 }
 

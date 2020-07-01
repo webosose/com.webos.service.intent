@@ -14,40 +14,41 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BASE_HANDLERS_H_
-#define BASE_HANDLERS_H_
+#ifndef BUS_SESSION_SAM_H_
+#define BUS_SESSION_SAM_H_
 
 #include <iostream>
 #include <map>
 
-#include "Handler.h"
-#include "interface/IClassName.h"
+#include <luna-service2/lunaservice.hpp>
+
+#include "bus/AbsLunaClient.h"
+#include "base/Handler.h"
 #include "interface/ISingleton.h"
-#include "interface/ISerializable.h"
+#include "interface/IInitializable.h"
 
 using namespace std;
 
-class Handlers : public IClassName,
-                 public ISingleton<Handlers>,
-                 public ISerializable {
-friend class ISingleton<Handlers>;
+class SAM : public AbsLunaClient {
 public:
-    virtual ~Handlers();
+    // SAM is session-side service.
+    SAM(const string& sessionId);
+    virtual ~SAM();
 
-    virtual bool add(HandlerPtr handler);
-    virtual bool removeBySessionId(const string& sessionId);
-    virtual bool hasHandler(const string& key);
-    virtual HandlerPtr getHandler(IntentPtr intent);
+    // API
+    int launch(IntentPtr intent, HandlerPtr handler);
 
-    // ISerializable
-    virtual bool toJson(JValue& array) override;
-    virtual bool toJson(JValue& array, IntentPtr intent);
+protected:
+    virtual void onServerStatusChanged(bool isConnected) override;
 
 private:
-    Handlers();
+    static bool onLaunch(LSHandle* sh, LSMessage* reply, void* ctx);
+    static bool onListApps(LSHandle* sh, LSMessage* reply, void* ctx);
 
-    map<string, HandlerPtr> m_handlers;
+    static const string& CLASS_NAME;
+
+    Call m_listApps;
 
 };
 
-#endif /* BASE_HANDLERS_H_ */
+#endif /* BUS_SESSION_SAM_H_ */

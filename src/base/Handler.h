@@ -38,6 +38,18 @@ public:
     // ISerializable
     virtual bool toJson(JValue& json) override;
 
+    string getKey()
+    {
+        string key;
+        if (m_sessionId.empty()) {
+            key = "host";
+        } else {
+            key = m_sessionId;
+        }
+        key += "_" + m_name;
+        return key;
+    }
+
     void setName(string name)
     {
         m_name = name;
@@ -49,6 +61,15 @@ public:
     bool hasName()
     {
         return !m_name.empty();
+    }
+
+    void setSessionId(const string& sessionId)
+    {
+        m_sessionId = sessionId;
+    }
+    const string& getSessionId()
+    {
+        return m_sessionId;
     }
 
     void setIntentFilters(JValue& intentFilters)
@@ -78,9 +99,8 @@ private:
     const static string CLASS_NAME;
 
     string m_name;
+    string m_sessionId;
     JValue m_intentFilters;
-
-    deque<IntentPtr> m_intents;
 };
 
 typedef shared_ptr<Handler> HandlerPtr;

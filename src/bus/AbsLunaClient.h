@@ -14,8 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BUS_CLIENT_ABSLUNACLIENT_H_
-#define BUS_CLIENT_ABSLUNACLIENT_H_
+#ifndef BUS_ABSLUNACLIENT_H_
+#define BUS_ABSLUNACLIENT_H_
 
 #include <iostream>
 #include <boost/signals2.hpp>
@@ -46,6 +46,13 @@ public:
 
 class AbsLunaClient : public IInitializable{
 public:
+    static const string getSessionId(LSMessage* message)
+    {
+        if (LSMessageGetSessionId(message) == nullptr)
+            return "";
+        return LSMessageGetSessionId(message);
+    }
+
     static JValue& getEmptyPayload()
     {
         static JValue _PAYLOAD;
@@ -78,12 +85,15 @@ protected:
     virtual void onServerStatusChanged(bool isConnected) = 0;
 
     string m_name;
+    string m_sessionId;
+
     bool m_isConnected;
 
 private:
     static bool _onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context);
 
     Call m_statusCall;
+
 };
 
-#endif /* BUS_CLIENT_ABSLUNACLIENT_H_ */
+#endif /* BUS_ABSLUNACLIENT_H_ */

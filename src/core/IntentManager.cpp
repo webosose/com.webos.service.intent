@@ -18,11 +18,12 @@
 
 #include <lunaservice.h>
 
+#include "bus/session/SAM.h"
+#include "bus/host/SessionManager.h"
 #include "base/Handler.h"
 #include "base/Handlers.h"
 #include "base/Intent.h"
 #include "base/Intents.h"
-#include "bus/client/SAM.h"
 #include "util/Logger.h"
 
 bool IntentManager::_onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context)
@@ -34,13 +35,14 @@ bool IntentManager::_onServerStatusChanged(LSHandle* sh, LSMessage* message, voi
         return true;
 
     bool connected = false;
-    if (!JValueUtil::getValue(subscriptionPayload, "connected", connected)) {
+    string serviceName = "";
+    if (!JValueUtil::getValue(subscriptionPayload, "connected", connected) ||
+        !JValueUtil::getValue(subscriptionPayload, "serviceName", serviceName)) {
         return true;
     }
 
-    cout << subscriptionPayload.stringify("    ") << endl;
-
     if (connected == false) {
+        Intents::getInstance().removeByOwner(serviceName);
         LSCallCancel(getInstance().get(), response.getMessageToken(), nullptr);
     }
     return true;
@@ -130,6 +132,7 @@ bool IntentManager::start(LSMessage &message)
     Message request(&message);
     JValue requestPayload = JDomParser::fromString(request.getPayload());
     JValue responsePayload = pbnjson::Object();
+    string sessionId = AbsLunaClient::getSessionId(request.get());
     string errorText = "";
 
     HandlerPtr handler = nullptr;
@@ -137,6 +140,13 @@ bool IntentManager::start(LSMessage &message)
     int intentId = -1;
 
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
+    // If there is given sessionId, just overwrite it.
+    JValueUtil::getValue(requestPayload, "sessionId", sessionId);
+    SessionPtr session = SessionManager::getInstance().getSession(sessionId);
+    if (session == nullptr) {
+        errorText = "Cannot find session";
+        goto Done;
+    }
     if (!intent->fromJson(requestPayload["intent"]) || !intent->isValid()) {
         errorText = "Invalid parameter";
         goto Done;
@@ -151,18 +161,25 @@ bool IntentManager::start(LSMessage &message)
 
     // TODO, currently, we don't care about services
     // In the future, native service should be called
-    intentId = SAM::getInstance().launch(intent, handler);
+    intentId = session->getSAM().launch(intent, handler);
     if (intentId == -1) {
         errorText = "Failed to start intent";
         goto Done;
     }
 
     intent->setIntentId(intentId);
+    intent->setSessionId(sessionId);
     intent->setOwner(getName(request));
-    Intents::getInstance().add(intent);
-    subscribeStatus(intent->getOwner());
 
     responsePayload.put("intentId", intentId);
+    responsePayload.put("sessionId", sessionId);
+    subscribeStatus(intent->getOwner());
+
+    if (request.isSubscription()) {
+        responsePayload.put("subscribed", true);
+        intent->addSubscriber(request);
+    }
+    Intents::getInstance().add(intent);
 
 Done:
     if (!errorText.empty()) {
@@ -180,10 +197,11 @@ bool IntentManager::sendResult(LSMessage &message)
     Message request(&message);
     JValue requestPayload = JDomParser::fromString(request.getPayload());
     JValue responsePayload = pbnjson::Object();
-    JValue payload = pbnjson::Object();
+    JValue subscriptionPayload = pbnjson::Object();
     string errorText = "";
 
-    IntentPtr intent = nullptr;
+    IntentPtr requestIntent = nullptr;
+    JValue intent = pbnjson::Object();
     int intentId = -1;
     string result = "";
     JValue extra;
@@ -192,26 +210,25 @@ bool IntentManager::sendResult(LSMessage &message)
         errorText = "'intentId' is required parameter";
         goto Done;
     }
-    intent = Intents::getInstance().get(intentId);
-    if (intent == nullptr) {
+    requestIntent = Intents::getInstance().get(intentId);
+    if (requestIntent == nullptr) {
         errorText = "Cannot find intent";
         goto Done;
     }
-
-    if (JValueUtil::getValue(requestPayload, "result", result)) {
-        payload.put("result", result);
-    }
-    if (JValueUtil::getValue(requestPayload, "extra", extra) && extra.isObject()) {
-        payload.put("extra", extra);
-    }
-    if (payload.objectSize() == 0) {
-        errorText = "Cannot find 'result' or 'extra'";
+    if (!JValueUtil::getValue(requestPayload, "result", result)) {
+        errorText = "Cannot find 'result'";
         goto Done;
     }
-    payload.put("returnValue", true);
-    payload.put("subscribed", true);
-    payload.put("intentId", intentId);
-    intent->respond(payload.stringify());
+    subscriptionPayload.put("result", result);
+
+    if (JValueUtil::getValue(requestPayload, "intent", intent)) {
+        subscriptionPayload.put("intent", intent);
+    }
+
+    subscriptionPayload.put("returnValue", true);
+    subscriptionPayload.put("subscribed", true);
+    subscriptionPayload.put("intentId", intentId);
+    requestIntent->respond(subscriptionPayload.stringify());
 
 Done:
     if (!errorText.empty()) {
@@ -227,18 +244,14 @@ Done:
 
 bool IntentManager::subscribeResult(LSMessage &message)
 {
-    MessagePtr request = make_shared<Message>();
-    JValue requestPayload = JDomParser::fromString(request->getPayload());
+    Message request(&message);
+    JValue requestPayload = JDomParser::fromString(request.getPayload());
     JValue responsePayload = pbnjson::Object();
     string errorText = "";
 
     IntentPtr intent = nullptr;
     int intentId = -1;
 
-    if (!request->isSubscription()) {
-        errorText = "'subscribe' should be 'true'";
-        goto Done;
-    }
     if (!JValueUtil::getValue(requestPayload, "intentId", intentId)) {
         errorText = "'intentId' is required parameter";
         goto Done;
@@ -246,6 +259,10 @@ bool IntentManager::subscribeResult(LSMessage &message)
     intent = Intents::getInstance().get(intentId);
     if (intent == nullptr) {
         errorText = "Cannot find intent";
+        goto Done;
+    }
+    if (!request.isSubscription()) {
+        errorText = "'subscribe' should be 'true'";
         goto Done;
     }
     intent->addSubscriber(request);
@@ -258,7 +275,7 @@ Done:
         responsePayload.put("returnValue", true);
     }
     responsePayload.put("intentId", intentId);
-    request->respond(responsePayload.stringify().c_str());
+    request.respond(responsePayload.stringify().c_str());
     return true;
 }
 

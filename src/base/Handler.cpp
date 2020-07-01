@@ -40,8 +40,12 @@ bool Handler::launch(Intent intent)
 
 bool Handler::isMatched(IntentPtr intent)
 {
+    if (intent->hasSessionId() && m_sessionId != intent->getSessionId()) {
+        return false;
+    }
+
     // explicit intent
-    if (!intent->getName().empty()) {
+    if (intent->hasName()) {
         if (m_name == intent->getName())
             return true;
         return false;
@@ -58,6 +62,8 @@ bool Handler::isMatched(IntentPtr intent)
 bool Handler::toJson(JValue& json)
 {
     json.put("name", m_name);
+    if (!m_sessionId.empty())
+        json.put("sessionId", m_sessionId);
     json.put("intentFilters", m_intentFilters);
     return true;
 }

@@ -14,14 +14,45 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "bus/BusSystem.h"
+#ifndef BUS_SESSION_SESSION_H_
+#define BUS_SESSION_SESSION_H_
 
-BusSystem::BusSystem()
-{
+#include <iostream>
 
-}
+#include "bus/session/SAM.h"
 
-BusSystem::~BusSystem()
-{
-}
+using namespace std;
 
+class Session {
+public:
+    Session(const string& sessionId, GMainLoop* mainloop);
+    virtual ~Session();
+
+    SAM& getSAM()
+    {
+        return m_sam;
+    }
+
+    void setRunning(bool running)
+    {
+        m_isRunning = running;
+    }
+    bool isRunning()
+    {
+        return m_isRunning;
+    }
+
+private:
+    static const string& CLASS_NAME;
+
+    string m_sessionId;
+
+    SAM m_sam;
+
+    bool m_isRunning;
+
+};
+
+typedef shared_ptr<Session> SessionPtr;
+
+#endif /* BUS_SESSION_SESSION_H_ */

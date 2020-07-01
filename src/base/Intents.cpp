@@ -16,8 +16,11 @@
 
 #include "Intents.h"
 
+#include "util/Logger.h"
+
 Intents::Intents()
 {
+    setClassName("Intents");
 }
 
 Intents::~Intents()
@@ -27,16 +30,28 @@ Intents::~Intents()
 void Intents::add(IntentPtr intent)
 {
     m_intents[intent->getIntentId()] = intent;
+    onAdd(intent);
 }
 
 void Intents::remove(int intentId)
 {
+    IntentPtr intent = get(intentId);
+    if (intent == nullptr)
+        return;
+    onRemove(intent);
     m_intents.erase(intentId);
 }
 
 void Intents::removeByOwner(const string& owner)
 {
-
+    for (auto it = m_intents.cbegin(); it != m_intents.cend() ;) {
+        if (it->second->getOwner() == owner) {
+            onRemove(it->second);
+            it = m_intents.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 IntentPtr Intents::get(int intentId)
@@ -44,4 +59,14 @@ IntentPtr Intents::get(int intentId)
     if (m_intents.find(intentId) == m_intents.end())
         return nullptr;
     return m_intents[intentId];
+}
+
+void Intents::onRemove(IntentPtr intent)
+{
+    Logger::info(getClassName(), __FUNCTION__, toString(intent), "Removed");
+}
+
+void Intents::onAdd(IntentPtr intent)
+{
+    Logger::info(getClassName(), __FUNCTION__, toString(intent), "Added");
 }

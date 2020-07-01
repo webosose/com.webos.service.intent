@@ -34,36 +34,30 @@ bool Handlers::add(HandlerPtr handler)
         return false;
     }
 
-    if (hasHandler(handler->getName())) {
+    if (hasHandler(handler->getKey())) {
         return false;
     }
-    m_handlers[handler->getName()] = handler;
+    m_handlers[handler->getKey()] = handler;
     return true;
 }
 
-bool Handlers::remove(const string& name)
+bool Handlers::removeBySessionId(const string& sessionId)
 {
-    for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
-        if (it->second->getName() == name) {
-            m_handlers.erase(it);
-            return true;
+    for (auto it = m_handlers.cbegin(); it != m_handlers.cend() ;) {
+        if (it->second->getSessionId() == sessionId) {
+            it = m_handlers.erase(it);
+        } else {
+            ++it;
         }
     }
-    return false;
-}
-
-bool Handlers::hasHandler(const string& name)
-{
-    if (m_handlers.find(name) == m_handlers.end())
-        return false;
     return true;
 }
 
-HandlerPtr Handlers::getHandler(const string& name)
+bool Handlers::hasHandler(const string& key)
 {
-    if (m_handlers.find(name) == m_handlers.end())
-        return nullptr;
-    return m_handlers.find(name)->second;
+    if (m_handlers.find(key) == m_handlers.end())
+        return false;
+    return true;
 }
 
 HandlerPtr Handlers::getHandler(IntentPtr intent)

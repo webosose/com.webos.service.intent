@@ -14,41 +14,45 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BUS_CLIENT_SAM_H_
-#define BUS_CLIENT_SAM_H_
+#ifndef BUS_HOST_SESSIONMANAGER_H_
+#define BUS_HOST_SESSIONMANAGER_H_
 
 #include <iostream>
+#include <map>
 
 #include <luna-service2/lunaservice.hpp>
 
-#include "AbsLunaClient.h"
-#include "base/Handler.h"
+#include "bus/AbsLunaClient.h"
+#include "bus/session/Session.h"
 #include "interface/ISingleton.h"
-#include "interface/IInitializable.h"
 
 using namespace std;
 
-class SAM : public AbsLunaClient,
-            public ISingleton<SAM> {
-friend class ISingleton<SAM>;
+class SessionManager : public AbsLunaClient,
+                       public ISingleton<SessionManager> {
+friend class ISingleton<SessionManager>;
 public:
-    virtual ~SAM();
+    virtual ~SessionManager();
 
-    // API
-    int launch(IntentPtr intent, HandlerPtr handler);
+    SessionPtr getSession(const string& sessionId)
+    {
+        if (m_sessions.find(sessionId) == m_sessions.end()) {
+            return nullptr;
+        }
+        return m_sessions[sessionId];
+    }
 
 protected:
     virtual void onServerStatusChanged(bool isConnected) override;
 
 private:
-    static bool _launch(LSHandle* sh, LSMessage* reply, void* ctx);
-    static bool _listApps(LSHandle* sh, LSMessage* reply, void* ctx);
+    static bool onGetSessionList(LSHandle* sh, LSMessage* reply, void* ctx);
 
-    SAM();
+    SessionManager();
 
-    LS::ServerStatus m_serverStatus;
-    Call m_listApps;
+    Call m_getSessionList;
 
+    map<string, SessionPtr> m_sessions;
 };
 
-#endif /* BUS_CLIENT_SAM_H_ */
+#endif /* BUS_HOST_SESSIONMANAGER_H_ */

@@ -14,13 +14,25 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BUS_BUSSYSTEM_H_
-#define BUS_BUSSYSTEM_H_
+#include "Session.h"
 
-class BusSystem {
-public:
-    BusSystem();
-    virtual ~BusSystem();
-};
+#include "base/Handlers.h"
 
-#endif /* BUS_BUSSYSTEM_H_ */
+const string& Session::CLASS_NAME = "Session";
+
+Session::Session(const string& sessionId, GMainLoop* mainloop)
+    : m_sessionId(sessionId),
+      m_sam(sessionId),
+      m_isRunning(true)
+{
+    Logger::info(CLASS_NAME, __FUNCTION__, m_sessionId, "Session is added");
+    m_sam.initialize(mainloop);
+}
+
+Session::~Session()
+{
+    m_sam.finalize();
+    Handlers::getInstance().removeBySessionId(m_sessionId);
+    Logger::info(CLASS_NAME, __FUNCTION__, m_sessionId, "Session is removed");
+}
+

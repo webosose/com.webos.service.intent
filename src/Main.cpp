@@ -79,7 +79,7 @@ int main(int argc, char **argv)
         MainDaemon::getInstance().initialize();
         MainDaemon::getInstance().start();
     } catch(...) {
-        Logger::info(CLASS_NAME, __FUNCTION__, "Failed to Intent process");
+        Logger::info(CLASS_NAME, __FUNCTION__, "Exception in unknown position");
     }
     MainDaemon::getInstance().finalize();
     return EXIT_SUCCESS;

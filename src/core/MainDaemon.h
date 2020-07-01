@@ -37,10 +37,15 @@ public:
     void start();
     void stop();
 
+    GMainLoop* getGMainLoop()
+    {
+        return m_mainLoop;
+    }
+
 private:
     MainDaemon();
 
-    GMainLoop *m_mainLoop;
+    GMainLoop* m_mainLoop;
 
 };
 
