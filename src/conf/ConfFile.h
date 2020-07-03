@@ -43,6 +43,7 @@ private:
     ConfFile();
 
     static const string PATH_DATABASE;
+    static const string PATH_TMP_DATABASE;
 
     JValue m_database;
 };

@@ -18,10 +18,12 @@
 
 #include <fstream>
 
+#include "util/File.h"
 #include "util/Logger.h"
 #include "util/JValueUtil.h"
 
 const string ConfFile::PATH_DATABASE = "/etc/palm/com.webos.service.intent.json";
+const string ConfFile::PATH_TMP_DATABASE = "/tmp/com.webos.service.intent.json";
 
 ConfFile::ConfFile()
 {
@@ -34,7 +36,14 @@ ConfFile::~ConfFile()
 
 bool ConfFile::onInitialization()
 {
-    m_database = JDomParser::fromFile(PATH_DATABASE.c_str());
+    if (File::isFile(PATH_TMP_DATABASE)) {
+        Logger::info(getClassName(), __FUNCTION__, "Try to load tmp database");
+        m_database = JDomParser::fromFile(PATH_TMP_DATABASE.c_str());
+    } else {
+        Logger::info(getClassName(), __FUNCTION__, "Try to load built-in database");
+        m_database = JDomParser::fromFile(PATH_DATABASE.c_str());
+    }
+
     if (m_database.isNull()) {
         Logger::info(getClassName(), __FUNCTION__, "The database file is empty.");
         m_database = pbnjson::Object();

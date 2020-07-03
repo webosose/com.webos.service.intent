@@ -72,12 +72,21 @@ HandlerPtr Handlers::getHandler(IntentPtr intent)
 
 bool Handlers::toJson(JValue& array)
 {
+    return toJson(array, "");
+}
+
+bool Handlers::toJson(JValue& array, const string& sessionId)
+{
     if (!array.isArray()) {
         array = pbnjson::Array();
     }
 
     for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
         JValue item = pbnjson::Object();
+
+        if (!sessionId.empty() && sessionId != it->second->getSessionId())
+            continue;
+
         it->second->toJson(item);
         array.append(item);
     }

@@ -20,14 +20,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-void File::set_slash_to_base_path(string& path)
-{
-    if (!path.empty() && path[path.length() - 1] == '/')
-        return;
-
-    path.append("/");
-}
-
 string File::readFile(const string& file_name)
 {
     ifstream file(file_name.c_str(), ifstream::in);

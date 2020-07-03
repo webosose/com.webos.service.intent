@@ -47,7 +47,7 @@ private:
 
     static const string& CLASS_NAME;
 
-    Call m_listApps;
+    LSMessageToken m_listApps;
 
 };
 

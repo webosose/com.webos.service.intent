@@ -32,11 +32,18 @@ bool AbsLunaClient::_onServerStatusChanged(LSHandle* sh, LSMessage* message, voi
     if (!JValueUtil::getValue(subscriptionPayload, "connected", connected)) {
         return true;
     }
+    string sessionId = "";
+    if (!JValueUtil::getValue(subscriptionPayload, "sessionId", sessionId)) {
+        return true;
+    }
+    if (sessionId != "host" && sessionId != client->m_sessionId) {
+        return true;
+    }
 
     if (connected)
-        Logger::info(client->getClassName(), __FUNCTION__, "Service is up");
+        Logger::info(client->getClassName(), __FUNCTION__, client->m_sessionId, "Service is up");
     else
-        Logger::info(client->getClassName(), __FUNCTION__, "Service is down");
+        Logger::info(client->getClassName(), __FUNCTION__, client->m_sessionId, "Service is down");
 
     client->m_isConnected = connected;
     client->EventServiceStatusChanged(connected);

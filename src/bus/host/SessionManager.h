@@ -43,6 +43,8 @@ public:
     }
 
 protected:
+    virtual bool onInitialization() override;
+    virtual bool onFinalization() override;
     virtual void onServerStatusChanged(bool isConnected) override;
 
 private:

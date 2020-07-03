@@ -26,28 +26,6 @@
 #include "base/Intents.h"
 #include "util/Logger.h"
 
-bool IntentManager::_onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context)
-{
-    Message response(message);
-    JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
-
-    if (subscriptionPayload.isNull())
-        return true;
-
-    bool connected = false;
-    string serviceName = "";
-    if (!JValueUtil::getValue(subscriptionPayload, "connected", connected) ||
-        !JValueUtil::getValue(subscriptionPayload, "serviceName", serviceName)) {
-        return true;
-    }
-
-    if (connected == false) {
-        Intents::getInstance().removeByOwner(serviceName);
-        LSCallCancel(getInstance().get(), response.getMessageToken(), nullptr);
-    }
-    return true;
-}
-
 string IntentManager::getName(LS::Message& request)
 {
     string result;
@@ -97,22 +75,28 @@ bool IntentManager::query(LSMessage &message)
     Message request(&message);
     JValue requestPayload = JDomParser::fromString(request.getPayload());
     JValue responsePayload = pbnjson::Object();
+    string sessionId = AbsLunaClient::getSessionId(request.get());
     string errorText = "";
 
     JValue handlers = pbnjson::Array();
     IntentPtr intent = make_shared<Intent>();
 
+    if (requestPayload.isNull()) {
+        errorText = "Invalid parameter";
+        goto Done;
+    }
+
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
-    if (requestPayload.isObject() && requestPayload.objectSize() == 0) {
-        Handlers::getInstance().toJson(handlers);
-    } else {
-        if (requestPayload.isNull() ||
-           !requestPayload.hasKey("intent") || !intent->fromJson(requestPayload["intent"]) ||
-           !intent->isValid()) {
-            errorText = "Invalid parameter";
+    JValueUtil::getValue(requestPayload, "sessionId", sessionId);
+    if (requestPayload.hasKey("intent")) {
+        if (!intent->fromJson(requestPayload["intent"]) || !intent->isValid()) {
+            errorText = "Failed to parse intent";
             goto Done;
         }
+        intent->setSessionId(sessionId);
         Handlers::getInstance().toJson(handlers, intent);
+    } else {
+        Handlers::getInstance().toJson(handlers, sessionId);
     }
     responsePayload.put("handlers", handlers);
 
@@ -140,7 +124,6 @@ bool IntentManager::start(LSMessage &message)
     int intentId = -1;
 
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
-    // If there is given sessionId, just overwrite it.
     JValueUtil::getValue(requestPayload, "sessionId", sessionId);
     SessionPtr session = SessionManager::getInstance().getSession(sessionId);
     if (session == nullptr) {
@@ -172,8 +155,9 @@ bool IntentManager::start(LSMessage &message)
     intent->setOwner(getName(request));
 
     responsePayload.put("intentId", intentId);
-    responsePayload.put("sessionId", sessionId);
-    subscribeStatus(intent->getOwner());
+    if (!sessionId.empty())
+        responsePayload.put("sessionId", sessionId);
+    subscribeStatus(intent->getOwner(), sessionId);
 
     if (request.isSubscription()) {
         responsePayload.put("subscribed", true);
@@ -228,6 +212,7 @@ bool IntentManager::sendResult(LSMessage &message)
     subscriptionPayload.put("returnValue", true);
     subscriptionPayload.put("subscribed", true);
     subscriptionPayload.put("intentId", intentId);
+    subscriptionPayload.put("from", getName(request));
     requestIntent->respond(subscriptionPayload.stringify());
 
 Done:
@@ -266,11 +251,13 @@ bool IntentManager::subscribeResult(LSMessage &message)
         goto Done;
     }
     intent->addSubscriber(request);
+    responsePayload.put("subscribed", true);
 
 Done:
     if (!errorText.empty()) {
         responsePayload.put("returnValue", false);
         responsePayload.put("errorText", errorText);
+        responsePayload.put("subscribed", false);
     } else {
         responsePayload.put("returnValue", true);
     }
@@ -279,11 +266,13 @@ Done:
     return true;
 }
 
-void IntentManager::subscribeStatus(const string& name)
+void IntentManager::subscribeStatus(const string& name, const string& sessionId)
 {
     JValue requestPayload = pbnjson::Object();
     requestPayload.put("serviceName", name);
     requestPayload.put("subscribe", true);
+    if (!sessionId.empty())
+        requestPayload.put("sessionId", sessionId);
 
     LSCall(this->get(),
            "luna://com.webos.service.bus/signal/registerServerStatus",
@@ -293,4 +282,28 @@ void IntentManager::subscribeStatus(const string& name)
            nullptr,
            nullptr
     );
+}
+
+bool IntentManager::_onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context)
+{
+    Message response(message);
+    JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
+
+    if (subscriptionPayload.isNull())
+        return true;
+
+    Logger::logSubscriptionResponse(getInstance().getClassName(), __FUNCTION__, response, subscriptionPayload);
+
+    bool connected = false;
+    string serviceName = "";
+    if (!JValueUtil::getValue(subscriptionPayload, "connected", connected) ||
+        !JValueUtil::getValue(subscriptionPayload, "serviceName", serviceName)) {
+        return true;
+    }
+
+    if (connected == false) {
+        Intents::getInstance().removeByOwner(serviceName);
+        LSCallCancel(getInstance().get(), response.getMessageToken(), nullptr);
+    }
+    return true;
 }

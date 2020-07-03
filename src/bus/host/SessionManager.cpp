@@ -29,6 +29,23 @@ SessionManager::~SessionManager()
     m_getSessionList.cancel();
 }
 
+bool SessionManager::onInitialization()
+{
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+    return AbsLunaClient::onInitialization();
+#else
+    // Create empty session
+    m_sessions[""] = make_shared<Session>("", m_mainloop);
+    return true;
+#endif
+}
+
+bool SessionManager::onFinalization()
+{
+    m_sessions.clear();
+    return AbsLunaClient::onFinalization();
+}
+
 void SessionManager::onServerStatusChanged(bool isConnected)
 {
     static string method = string("luna://") + m_name + string("/getSessionList");

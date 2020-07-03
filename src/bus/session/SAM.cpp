@@ -27,7 +27,8 @@
 const string& SAM::CLASS_NAME = "SAM";
 
 SAM::SAM(const string& sessionId)
-    : AbsLunaClient("com.webos.service.applicationmanager")
+    : AbsLunaClient("com.webos.service.applicationmanager"),
+      m_listApps(0)
 {
     setClassName("SAM");
     m_sessionId = sessionId;
@@ -35,23 +36,46 @@ SAM::SAM(const string& sessionId)
 
 SAM::~SAM()
 {
-    m_listApps.cancel();
+    if (m_listApps != 0) {
+        LSCallCancel(IntentManager::getInstance().get(), m_listApps, nullptr);
+        m_listApps = 0;
+    }
 }
 
 void SAM::onServerStatusChanged(bool isConnected)
 {
     static string method = string("luna://") + m_name + string("/listApps");
 
-    m_listApps.cancel();
     if (isConnected) {
-        m_listApps = IntentManager::getInstance().callMultiReply(
-            method.c_str(),
-            AbsLunaClient::getSubscriptionPayload().stringify().c_str(),
-            onListApps,
-            this,
-            nullptr,
-            m_sessionId.empty() ? nullptr : m_sessionId.c_str()
-        );
+        if (m_listApps == 0) {
+            LSErrorSafe error;
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+            if (!LSCallSession(
+#else
+            if (!LSCall(
+#endif
+                    IntentManager::getInstance().get(),
+                    method.c_str(),
+                    AbsLunaClient::getSubscriptionPayload().stringify().c_str(),
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+                    m_sessionId.c_str(),
+#endif
+                    onListApps,
+                    this,
+                    &m_listApps,
+                    &error
+            )) {
+                Logger::error(CLASS_NAME, __FUNCTION__, error.message);
+            }
+        }
+    } else {
+        if (m_listApps != 0) {
+            LSCallCancel(IntentManager::getInstance().get(), m_listApps, nullptr);
+            m_listApps = 0;
+        }
+
+        Handlers::getInstance().removeBySessionId(m_sessionId);
+        Logger::info(CLASS_NAME, __FUNCTION__, m_sessionId, "Apps are removed");
     }
 }
 
@@ -61,10 +85,9 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* reply, void* ctx)
     string sessionId = AbsLunaClient::getSessionId(reply);
     JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
     bool returnValue = false;
-
     JValueUtil::getValue(subscriptionPayload, "returnValue", returnValue);
     // Let's avoid too many logs
-    // Logger::logSubscriptionResponse(getInstance().getClassName(), __FUNCTION__, response, subscriptionPayload);
+    // Logger::logSubscriptionResponse(CLASS_NAME, __FUNCTION__, response, subscriptionPayload);
 
     if (response.isHubError() || !returnValue) {
         Logger::error(CLASS_NAME, __FUNCTION__, std::string(response.getPayload()));
@@ -77,16 +100,16 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* reply, void* ctx)
         return true;
     }
 
-    for (JValue application : apps.items()) {
+    for (JValue app : apps.items()) {
         string id = "";
         JValue intentFilters;
 
-        if (!JValueUtil::getValue(application, "id", id)) {
+        if (!JValueUtil::getValue(app, "id", id)) {
             Logger::warning(CLASS_NAME, __FUNCTION__, "'id' is empty");
             continue;
         }
 
-        if (!JValueUtil::getValue(application, "intentFilters", intentFilters)) {
+        if (!JValueUtil::getValue(app, "intentFilters", intentFilters)) {
             ConfFile::getInstance().getIntentFilter(id, intentFilters);
         }
 
@@ -94,8 +117,10 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* reply, void* ctx)
         handler->setName(id);
         handler->setSessionId(sessionId);
         handler->setIntentFilters(intentFilters);
-        if (!Handlers::getInstance().add(handler)) {
-            Logger::error(CLASS_NAME, handler->getName(), "Failed to register handler");
+        if (Handlers::getInstance().add(handler)) {
+            Logger::error(CLASS_NAME, handler->getName(), "Add handler");
+        } else {
+            Logger::error(CLASS_NAME, handler->getName(), "Failed to add handler");
         }
     }
 
@@ -109,17 +134,25 @@ int SAM::launch(IntentPtr intent, HandlerPtr handler)
     pbnjson::JValue params = pbnjson::Object();
 
     intent->toJson(params);
+    params.put("from", intent->getOwner());
     requestPayload.put("params", params);
     requestPayload.put("id", handler->getName());
 
     LSErrorSafe error;
     LSMessageToken token = 0;
     Logger::logCallRequest(getClassName(), __FUNCTION__, method, requestPayload);
+
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
     if (!LSCallSessionOneReply(
+#else
+    if (!LSCallOneReply(
+#endif
         IntentManager::getInstance().get(),
         method.c_str(),
         requestPayload.stringify().c_str(),
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
         m_sessionId.c_str(),
+#endif
         onLaunch,
         nullptr,
         &token,

@@ -48,9 +48,16 @@ class AbsLunaClient : public IInitializable{
 public:
     static const string getSessionId(LSMessage* message)
     {
+        string sessionId = "";
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
         if (LSMessageGetSessionId(message) == nullptr)
             return "";
-        return LSMessageGetSessionId(message);
+
+        sessionId = LSMessageGetSessionId(message);
+        if (sessionId == "host")
+            sessionId = "";
+#endif
+        return sessionId;
     }
 
     static JValue& getEmptyPayload()

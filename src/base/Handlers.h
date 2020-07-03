@@ -41,6 +41,7 @@ public:
 
     // ISerializable
     virtual bool toJson(JValue& array) override;
+    virtual bool toJson(JValue& array, const string& sessionId);
     virtual bool toJson(JValue& array, IntentPtr intent);
 
 private:

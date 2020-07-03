@@ -43,7 +43,7 @@ public:
     bool sendResult(LSMessage &message);
     bool subscribeResult(LSMessage &message);
 
-    void subscribeStatus(const string& name);
+    void subscribeStatus(const string& name, const string& sessionId);
 
 protected:
     // IManageable

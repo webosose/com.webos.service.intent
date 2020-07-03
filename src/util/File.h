@@ -28,7 +28,6 @@ using namespace std;
 
 class File {
 public:
-    static void set_slash_to_base_path(string& path);
     static string readFile(const string& file_name);
     static bool writeFile(const string& filePath, const string& buffer);
     static bool concatToFilename(const string originPath, string& returnPath, const string addingStr);
