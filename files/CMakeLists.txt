@@ -14,5 +14,4 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-webos_build_configured_file(files/launch/com.webos.service.intent.service SYSCONFDIR systemd/system/webos-cbd.target.wants)
 webos_build_configured_file(files/conf/com.webos.service.intent.json WEBOS_SYSCONFDIR "")

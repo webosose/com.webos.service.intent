@@ -99,7 +99,7 @@ protected:
 private:
     static bool _onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context);
 
-    Call m_statusCall;
+    LSMessageToken m_statusCall;
 
 };
 

@@ -117,11 +117,7 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* reply, void* ctx)
         handler->setName(id);
         handler->setSessionId(sessionId);
         handler->setIntentFilters(intentFilters);
-        if (Handlers::getInstance().add(handler)) {
-            Logger::error(CLASS_NAME, handler->getName(), "Add handler");
-        } else {
-            Logger::error(CLASS_NAME, handler->getName(), "Failed to add handler");
-        }
+        Handlers::getInstance().add(handler);
     }
 
     return true;

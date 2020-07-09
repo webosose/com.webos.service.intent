@@ -53,14 +53,18 @@ bool AbsLunaClient::_onServerStatusChanged(LSHandle* sh, LSMessage* message, voi
 
 AbsLunaClient::AbsLunaClient(const string& name)
     : m_name(name),
-      m_isConnected(false)
+      m_isConnected(false),
+      m_statusCall(0)
 {
     setClassName("AbsLunaClient");
 }
 
 AbsLunaClient::~AbsLunaClient()
 {
-    m_statusCall.cancel();
+    if (m_statusCall != 0) {
+        LSCallCancel(IntentManager::getInstance().get(), m_statusCall, nullptr);
+        m_statusCall = 0;
+    }
 }
 
 bool AbsLunaClient::onInitialization()
@@ -70,18 +74,27 @@ bool AbsLunaClient::onInitialization()
     if (!m_sessionId.empty())
         requestPayload.put("sessionId", m_sessionId);
 
-    m_statusCall.cancel();
-    m_statusCall = IntentManager::getInstance().callMultiReply(
-        "luna://com.webos.service.bus/signal/registerServerStatus",
-        requestPayload.stringify().c_str(),
-        _onServerStatusChanged,
-        this
-    );
+    LSErrorSafe error;
+    if (!LSCall(
+            IntentManager::getInstance().get(),
+            "luna://com.webos.service.bus/signal/registerServerStatus",
+            requestPayload.stringify().c_str(),
+            _onServerStatusChanged,
+            this,
+            &m_statusCall,
+            &error
+    )) {
+        Logger::error(getClassName(), __FUNCTION__, error.message);
+        return false;
+    }
     return true;
 }
 
 bool AbsLunaClient::onFinalization()
 {
-    m_statusCall.cancel();
+    if (m_statusCall != 0) {
+        LSCallCancel(IntentManager::getInstance().get(), m_statusCall, nullptr);
+        m_statusCall = 0;
+    }
     return true;
 }
