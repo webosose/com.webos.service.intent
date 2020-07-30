@@ -27,3 +27,4 @@ add_subdirectory(src)
 
 # Install
 webos_build_system_bus_files()
+webos_build_configured_file(files/launch/com.webos.service.intent.service SYSCONFDIR systemd/system)

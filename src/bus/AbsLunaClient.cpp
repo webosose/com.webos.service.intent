@@ -20,7 +20,7 @@
 
 bool AbsLunaClient::_onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context)
 {
-    AbsLunaClient* client = static_cast<AbsLunaClient*>(context);
+    AbsLunaClient* self = static_cast<AbsLunaClient*>(context);
 
     Message response(message);
     JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
@@ -33,21 +33,22 @@ bool AbsLunaClient::_onServerStatusChanged(LSHandle* sh, LSMessage* message, voi
         return true;
     }
     string sessionId = "";
-    if (!JValueUtil::getValue(subscriptionPayload, "sessionId", sessionId)) {
-        return true;
-    }
-    if (sessionId != "host" && sessionId != client->m_sessionId) {
-        return true;
+    if (!self->m_sessionId.empty()) {
+        if (!JValueUtil::getValue(subscriptionPayload, "sessionId", sessionId)) {
+            return true;
+        } else if (sessionId != self->m_sessionId) {
+            return true;
+        }
     }
 
     if (connected)
-        Logger::info(client->getClassName(), __FUNCTION__, client->m_sessionId, "Service is up");
+        Logger::info(self->getClassName(), __FUNCTION__, self->m_sessionId, "Service is up");
     else
-        Logger::info(client->getClassName(), __FUNCTION__, client->m_sessionId, "Service is down");
+        Logger::info(self->getClassName(), __FUNCTION__, self->m_sessionId, "Service is down");
 
-    client->m_isConnected = connected;
-    client->EventServiceStatusChanged(connected);
-    client->onServerStatusChanged(connected);
+    self->m_isConnected = connected;
+    self->EventServiceStatusChanged(connected);
+    self->onServerStatusChanged(connected);
     return true;
 }
 
