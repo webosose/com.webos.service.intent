@@ -62,13 +62,18 @@ bool Intent::toJson(JValue& json)
         json.put("name", m_name);
     if (!m_action.empty())
         json.put("action", m_action);
-    if (!m_uri.empty())
-        json.put("uri", m_uri.toString());
     if (!m_mimeType.empty())
         json.put("mimeType", m_mimeType);
     if (!m_result.empty())
         json.put("result", m_result);
     if (m_extra.objectSize() != 0)
         json.put("extra", m_extra.duplicate());
+
+    if (!m_uri.empty()) {
+        JValue parsedUri = pbnjson::Object();
+        m_uri.toJson(parsedUri);
+        json.put("parsedUri", parsedUri);
+        json.put("uri", m_uri.toString());
+    }
     return true;
 }

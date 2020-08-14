@@ -84,11 +84,12 @@ bool Handlers::toJson(JValue& array, const string& sessionId)
     for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
         JValue item = pbnjson::Object();
 
-        if (!sessionId.empty() && sessionId != it->second->getSessionId())
-            continue;
-
-        it->second->toJson(item);
-        array.append(item);
+        if (!sessionId.empty() && sessionId != it->second->getSessionId()) {
+            // skip
+        } else {
+            it->second->toJson(item);
+            array.append(item);
+        }
     }
     return true;
 }
@@ -100,7 +101,10 @@ bool Handlers::toJson(JValue& array, IntentPtr intent)
     }
 
     for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
-        if (!it->second->isMatched(intent)) continue;
+        if (!it->second->isMatched(intent)) {
+            continue;
+        }
+
         JValue item = pbnjson::Object();
         it->second->toJson(item);
         array.append(item);

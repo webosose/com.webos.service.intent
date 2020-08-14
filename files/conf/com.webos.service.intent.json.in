@@ -8,7 +8,7 @@
         "com.webos.app.enactbrowser": [
             {
                 "actions": ["action_url", "action_uri"],
-                "uris": ["http://youtube.com", "http", "https"]
+                "uris": ["http://youtube.com", "http://", "https://"]
             }
         ],
         "com.example.app.iotivity": [

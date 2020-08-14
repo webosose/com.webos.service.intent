@@ -42,6 +42,7 @@ public:
     string fragment() const { return m_fragment; }
 
     string toString() const { return m_uri; }
+    bool toJson(JValue& json);
 
     bool isMatched()  const;
     bool empty()      const { return m_empty; }

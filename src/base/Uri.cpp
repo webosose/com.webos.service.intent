@@ -76,11 +76,30 @@ bool Uri::parse(const string& str)
             counter++;
         }
         // For debugging purpose.
-        printf("scheme(%s) host(%s) path(%s) query(%s) fragment(%s)\n", m_scheme.c_str(), m_host.c_str(), m_path.c_str(), m_query.c_str(), m_fragment.c_str());
+        printf("[Source] %s\n", str.c_str());
+        printf("[Parsed] scheme(%s) host(%s) path(%s) query(%s) fragment(%s)\n",
+            m_scheme.c_str(), m_host.c_str(), m_path.c_str(), m_query.c_str(), m_fragment.c_str());
 
-        // TODO should check dependancy path --> host --> scheme
-
+        // TODO should check dependency path --> host --> scheme
         m_empty = false;
     }
     return !m_empty;
+}
+
+bool Uri::toJson(JValue& json)
+{
+    if (m_empty)
+        return false;
+
+    if (!m_scheme.empty())
+        json.put("scheme", m_scheme);
+    if (!m_host.empty())
+        json.put("host", m_host);
+    if (!m_path.empty())
+        json.put("path", m_path);
+    if (!m_query.empty())
+        json.put("query", m_query);
+    if (!m_fragment.empty())
+        json.put("fragment", m_fragment);
+    return true;
 }

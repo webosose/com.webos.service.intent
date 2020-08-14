@@ -140,9 +140,12 @@ bool Handler::compareUri(JValue& uris, const Uri& b)
 
     Uri a;
     for (JValue item : uris.items()) {
-        if (a.parse(item.asString()) == false) continue;
-        if (Uri::compare(a, b))
+        if (a.parse(item.asString()) == false) {
+            continue;
+        }
+        if (Uri::compare(a, b)) {
             return true;
+        }
     }
     return false;
 }

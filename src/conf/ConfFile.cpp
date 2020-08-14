@@ -55,14 +55,6 @@ bool ConfFile::onInitialization()
 
 bool ConfFile::onFinalization()
 {
-    ofstream out(PATH_DATABASE.c_str());
-    if (!out.is_open()) {
-        Logger::error(getClassName(), __FUNCTION__, "Failed to open database file");
-        return true;
-    }
-    Logger::info(getClassName(), __FUNCTION__, "Database is saved");
-    out << m_database.stringify("    ");
-    out.close();
     return true;
 }
 
