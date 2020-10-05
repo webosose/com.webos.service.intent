@@ -63,7 +63,11 @@ AbsLunaClient::AbsLunaClient(const string& name)
 AbsLunaClient::~AbsLunaClient()
 {
     if (m_statusCall != 0) {
-        LSCallCancel(IntentManager::getInstance().get(), m_statusCall, nullptr);
+        try {
+            LSCallCancel(IntentManager::getInstance().get(), m_statusCall, nullptr);
+        } catch(LS::Error& err) {
+            Logger::error(getClassName(), __FUNCTION__, "Exception in LS2");
+        }
         m_statusCall = 0;
     }
 }

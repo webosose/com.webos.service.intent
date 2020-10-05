@@ -16,6 +16,8 @@
 
 include(FindPkgConfig)
 
+project(com.webos.service.intent C CXX)
+
 webos_distro_dep()
 
 pkg_check_modules(GLIB2 REQUIRED glib-2.0)
@@ -39,13 +41,12 @@ include_directories(${PBNJSON_CPP_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${PBNJSON_CPP_CFLAGS_OTHER})
 
 # Environment
-set(BIN_NAME com.webos.service.intent)
 file(GLOB_RECURSE SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
 # Compile
 webos_add_compiler_flags(ALL CXX -std=c++0x)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-add_executable(${BIN_NAME} ${SRC})
+add_executable(${CMAKE_PROJECT_NAME} ${SRC})
 
 # Link
 set(LIBS
@@ -55,7 +56,7 @@ set(LIBS
     ${PBNJSON_C_LDFLAGS}
     ${PBNJSON_CPP_LDFLAGS}
 )
-target_link_libraries(${BIN_NAME} ${LIBS})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${LIBS})
 
 # Install
 install(TARGETS ${BIN_NAME} DESTINATION ${WEBOS_INSTALL_SBINDIR})

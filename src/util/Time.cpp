@@ -35,7 +35,9 @@ long long Time::getCurrentTime()
     timespec now;
     if (clock_gettime(CLOCK_MONOTONIC, &now) == -1)
         return -1;
-    return (now.tv_sec * 1000) + (now.tv_nsec / 1000000);
+    long long current = now.tv_sec * 1000;
+    current += now.tv_nsec / 1000000;
+    return current;
 }
 
 string Time::generateUid()

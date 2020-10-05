@@ -37,7 +37,11 @@ SAM::SAM(const string& sessionId)
 SAM::~SAM()
 {
     if (m_listApps != 0) {
-        LSCallCancel(IntentManager::getInstance().get(), m_listApps, nullptr);
+        try {
+            LSCallCancel(IntentManager::getInstance().get(), m_listApps, nullptr);
+        } catch(LS::Error& err) {
+            Logger::error(CLASS_NAME, __FUNCTION__, "Exception in LS2");
+        }
         m_listApps = 0;
     }
 }
@@ -131,6 +135,8 @@ int SAM::launch(IntentPtr intent, HandlerPtr handler)
 
     intent->toJson(params);
     params.put("from", intent->getOwner());
+    params.put("intentId", intent->getIntentId());
+    
     requestPayload.put("params", params);
     requestPayload.put("id", handler->getName());
 

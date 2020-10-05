@@ -84,7 +84,7 @@ public:
     {
         m_intentId = intentId;
     }
-    const int getIntentId()
+    const int& getIntentId()
     {
         return m_intentId;
     }

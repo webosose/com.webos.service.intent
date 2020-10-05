@@ -32,7 +32,6 @@ public:
     Handler();
     virtual ~Handler();
 
-    virtual bool launch(Intent intent);
     virtual bool isMatched(IntentPtr intent);
 
     // ISerializable

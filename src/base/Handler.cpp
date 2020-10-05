@@ -33,11 +33,6 @@ Handler::~Handler()
 {
 }
 
-bool Handler::launch(Intent intent)
-{
-    return true;
-}
-
 bool Handler::isMatched(IntentPtr intent)
 {
     if (intent->hasSessionId() && m_sessionId != intent->getSessionId()) {
