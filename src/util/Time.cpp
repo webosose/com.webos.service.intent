@@ -35,7 +35,7 @@ long long Time::getCurrentTime()
     timespec now;
     if (clock_gettime(CLOCK_MONOTONIC, &now) == -1)
         return -1;
-    long long current = now.tv_sec * 1000;
+    long long current = (long long)now.tv_sec * 1000;
     current += now.tv_nsec / 1000000;
     return current;
 }
