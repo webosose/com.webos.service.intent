@@ -29,6 +29,8 @@ using namespace std;
 class Handler : public ISerializable {
 friend class Handlers;
 public:
+    static string convertKey(const string& sessionId, const string& name);
+
     Handler();
     virtual ~Handler();
 
@@ -39,14 +41,7 @@ public:
 
     string getKey()
     {
-        string key;
-        if (m_sessionId.empty()) {
-            key = "host";
-        } else {
-            key = m_sessionId;
-        }
-        key += "_" + m_name;
-        return key;
+        return convertKey(m_sessionId, m_name);
     }
 
     void setName(string name)

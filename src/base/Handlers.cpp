@@ -31,13 +31,21 @@ Handlers::~Handlers()
 bool Handlers::add(HandlerPtr handler)
 {
     if (handler == nullptr || !handler->hasName()) {
+        Logger::warning(getClassName(), __FUNCTION__, "Invalid handler");
         return false;
     }
 
     if (hasHandler(handler->getKey())) {
+        Logger::warning(getClassName(), __FUNCTION__, "The id is already existed");
         return false;
     }
     m_handlers[handler->getKey()] = handler;
+    return true;
+}
+
+bool Handlers::remove(const string& key)
+{
+    m_handlers.erase(key);
     return true;
 }
 

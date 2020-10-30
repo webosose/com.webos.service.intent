@@ -98,6 +98,33 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* reply, void* ctx)
         return true;
     }
 
+    string id = "";
+    JValue intentFilters;
+    string change;
+    if (JValueUtil::getValue(subscriptionPayload, "change", change)) {
+        if (!JValueUtil::getValue(subscriptionPayload, "app", "id", id)) {
+            Logger::warning(CLASS_NAME, __FUNCTION__, "'id' is empty");
+            return true;
+        }
+
+        if (!JValueUtil::getValue(subscriptionPayload, "app", "intentFilters", intentFilters)) {
+            ConfFile::getInstance().getIntentFilter(id, intentFilters);
+        }
+
+        if (change == "added") {
+            HandlerPtr handler = make_shared<Handler>();
+            handler->setName(id);
+            handler->setSessionId(sessionId);
+            handler->setIntentFilters(intentFilters);
+            Handlers::getInstance().add(handler);
+        } else if (change == "removed") {
+            Handlers::getInstance().remove(Handler::convertKey(sessionId, id));
+        } else {
+            Logger::error(CLASS_NAME, __FUNCTION__, "Invalid change type");
+        }
+        return true;
+    }
+
     JValue apps;
     if (!JValueUtil::getValue(subscriptionPayload, "apps", apps) || !apps.isArray()) {
         Logger::error(CLASS_NAME, __FUNCTION__, "Failed to get 'apps' in subscriptionPayload");
@@ -105,9 +132,6 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* reply, void* ctx)
     }
 
     for (JValue app : apps.items()) {
-        string id = "";
-        JValue intentFilters;
-
         if (!JValueUtil::getValue(app, "id", id)) {
             Logger::warning(CLASS_NAME, __FUNCTION__, "'id' is empty");
             continue;
@@ -136,7 +160,7 @@ int SAM::launch(IntentPtr intent, HandlerPtr handler)
     intent->toJson(params);
     params.put("from", intent->getOwner());
     params.put("intentId", intent->getIntentId());
-    
+
     requestPayload.put("params", params);
     requestPayload.put("id", handler->getName());
 

@@ -23,6 +23,18 @@
 
 const string Handler::CLASS_NAME = "Handler";
 
+string Handler::convertKey(const string& sessionId, const string& name)
+{
+    string key;
+    if (sessionId.empty()) {
+        key = "host";
+    } else {
+        key = sessionId;
+    }
+    key += "_" + name;
+    return key;
+}
+
 Handler::Handler()
     : m_name("")
 {

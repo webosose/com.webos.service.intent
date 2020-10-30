@@ -35,6 +35,7 @@ public:
     virtual ~Handlers();
 
     virtual bool add(HandlerPtr handler);
+    virtual bool remove(const string& key);
     virtual bool removeBySessionId(const string& sessionId);
     virtual bool hasHandler(const string& key);
     virtual HandlerPtr getHandler(IntentPtr intent);
