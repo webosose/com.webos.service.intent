@@ -21,9 +21,10 @@
 #include "util/Logger.h"
 
 const string Intent::CLASS_NAME = "Intent";
+int Intent::s_counter = 0;
 
 Intent::Intent()
-    : m_intentId(-1)
+    : m_intentId(++s_counter)
 {
     m_subscriptionPoint.setServiceHandle(&IntentManager::getInstance());
     m_extra = pbnjson::Object();

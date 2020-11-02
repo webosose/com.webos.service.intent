@@ -80,10 +80,6 @@ public:
         return !m_uri.empty();
     }
 
-    void setIntentId(const int& intentId)
-    {
-        m_intentId = intentId;
-    }
     const int& getIntentId()
     {
         return m_intentId;
@@ -142,6 +138,7 @@ public:
 
 private:
     const static string CLASS_NAME;
+    static int s_counter;
 
     // Intent inner
     string m_name;

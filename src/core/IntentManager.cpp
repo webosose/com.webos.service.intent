@@ -121,7 +121,6 @@ bool IntentManager::start(LSMessage &message)
 
     HandlerPtr handler = nullptr;
     IntentPtr intent = make_shared<Intent>();
-    int intentId = -1;
 
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
     JValueUtil::getValue(requestPayload, "sessionId", sessionId);
@@ -144,17 +143,14 @@ bool IntentManager::start(LSMessage &message)
 
     // TODO, currently, we don't care about services
     // In the future, native service should be called
-    intentId = session->getSAM().launch(intent, handler);
-    if (intentId == -1) {
+    if (session->getSAM().launch(intent, handler) == -1) {
         errorText = "Failed to start intent";
         goto Done;
     }
 
-    intent->setIntentId(intentId);
     intent->setSessionId(sessionId);
     intent->setOwner(getName(request));
-
-    responsePayload.put("intentId", intentId);
+    responsePayload.put("intentId", intent->getIntentId());
     if (!sessionId.empty())
         responsePayload.put("sessionId", sessionId);
     subscribeStatus(intent->getOwner(), sessionId);
