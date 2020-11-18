@@ -24,7 +24,8 @@ const string Intent::CLASS_NAME = "Intent";
 int Intent::s_counter = 0;
 
 Intent::Intent()
-    : m_intentId(++s_counter)
+    : m_intentId(++s_counter),
+      m_token(-1)
 {
     m_subscriptionPoint.setServiceHandle(&IntentManager::getInstance());
     m_extra = pbnjson::Object();

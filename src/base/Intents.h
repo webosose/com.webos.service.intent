@@ -39,10 +39,11 @@ public:
     virtual ~Intents();
 
     void add(IntentPtr intent);
-    void remove(int intentId);
+    void removeById(int intentId);
     void removeByOwner(const string& owner);
 
-    IntentPtr get(int intentId);
+    IntentPtr getById(int intentId);
+    IntentPtr getByToken(int token);
 
 private:
     Intents();

@@ -187,6 +187,7 @@ int SAM::launch(IntentPtr intent, HandlerPtr handler)
         Logger::error(CLASS_NAME, __FUNCTION__, error.message);
         return -1;
     }
+    intent->setToken(token);
     return token;
 }
 
@@ -198,9 +199,7 @@ bool SAM::onLaunch(LSHandle* sh, LSMessage* reply, void* ctx)
 
     Logger::logCallResponse(CLASS_NAME, __FUNCTION__, response, subscriptionPayloadFrom);
 
-    int intentId = response.getResponseToken();
-
-    IntentPtr intent = Intents::getInstance().get(intentId);
+    IntentPtr intent = Intents::getInstance().getByToken(response.getResponseToken());
     if (intent == nullptr) {
         Logger::error(CLASS_NAME, __FUNCTION__, "Cannot find intent");
         return true;
@@ -212,11 +211,11 @@ bool SAM::onLaunch(LSHandle* sh, LSMessage* reply, void* ctx)
     if (!returnValue) {
         subscriptionPayloadTo.put("returnValue", returnValue);
         subscriptionPayloadTo.put("subscribed", true);
-        subscriptionPayloadTo.put("intentId", intentId);
+        subscriptionPayloadTo.put("intentId", intent->getIntentId());
         subscriptionPayloadTo.put("errorText", "Failed to start intent");
         intent->respond(subscriptionPayloadTo.stringify());
 
-        Intents::getInstance().remove(intentId);
+        Intents::getInstance().removeById(intent->getIntentId());
     }
     return true;
 }

@@ -33,9 +33,9 @@ void Intents::add(IntentPtr intent)
     onAdd(intent);
 }
 
-void Intents::remove(int intentId)
+void Intents::removeById(int intentId)
 {
-    IntentPtr intent = get(intentId);
+    IntentPtr intent = getById(intentId);
     if (intent == nullptr)
         return;
     onRemove(intent);
@@ -54,11 +54,22 @@ void Intents::removeByOwner(const string& owner)
     }
 }
 
-IntentPtr Intents::get(int intentId)
+IntentPtr Intents::getById(int intentId)
 {
-    if (m_intents.find(intentId) == m_intents.end())
+    if (m_intents.find(intentId) == m_intents.end()) {
         return nullptr;
+    }
     return m_intents[intentId];
+}
+
+IntentPtr Intents::getByToken(int token)
+{
+    for (auto it = m_intents.begin(); it != m_intents.end() ; ++it) {
+        if (it->second->getToken() == token) {
+            return it->second;
+        }
+    }
+    return nullptr;
 }
 
 void Intents::onRemove(IntentPtr intent)

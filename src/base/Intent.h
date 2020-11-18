@@ -107,6 +107,15 @@ public:
         return !m_sessionId.empty();
     }
 
+    void setToken(const int token)
+    {
+        m_token = token;
+    }
+    const int getToken()
+    {
+        return m_token;
+    }
+
     void setOwner(const string& owner)
     {
         m_owner = owner;
@@ -152,6 +161,7 @@ private:
     string m_result;
     string m_sessionId;
     string m_owner;
+    int m_token;
 
     // runtime values
     LS::SubscriptionPoint m_subscriptionPoint;

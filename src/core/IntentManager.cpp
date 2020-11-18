@@ -153,7 +153,8 @@ bool IntentManager::start(LSMessage &message)
     responsePayload.put("intentId", intent->getIntentId());
     if (!sessionId.empty())
         responsePayload.put("sessionId", sessionId);
-    subscribeStatus(intent->getOwner(), sessionId);
+    // server status should be monitored based on requester position not sessionId
+    subscribeStatus(intent->getOwner(), AbsLunaClient::getSessionId(request.get()));
 
     if (request.isSubscription()) {
         responsePayload.put("subscribed", true);
@@ -190,7 +191,7 @@ bool IntentManager::sendResult(LSMessage &message)
         errorText = "'intentId' is required parameter";
         goto Done;
     }
-    requestIntent = Intents::getInstance().get(intentId);
+    requestIntent = Intents::getInstance().getById(intentId);
     if (requestIntent == nullptr) {
         errorText = "Cannot find intent";
         goto Done;
@@ -237,7 +238,7 @@ bool IntentManager::subscribeResult(LSMessage &message)
         errorText = "'intentId' is required parameter";
         goto Done;
     }
-    intent = Intents::getInstance().get(intentId);
+    intent = Intents::getInstance().getById(intentId);
     if (intent == nullptr) {
         errorText = "Cannot find intent";
         goto Done;
