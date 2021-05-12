@@ -14,12 +14,13 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include <fcntl.h>
+#include "util/NativeProcess.h"
+
 #include <errno.h>
+#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "util/NativeProcess.h"
 #include "util/Logger.h"
 
 const string NativeProcess::CLASS_NAME = "NativeProcess";
@@ -48,12 +49,10 @@ NativeProcess::NativeProcess()
       m_logfile(-1),
       m_isTracked(false)
 {
-
 }
 
 NativeProcess::~NativeProcess()
 {
-
 }
 
 void NativeProcess::addArgument(const string& argument)
@@ -79,7 +78,7 @@ void NativeProcess::addEnv(const string& variable, const string& value)
     m_environments[variable] = value;
 }
 
-void NativeProcess::openLogfile(const string &logfile)
+void NativeProcess::openLogfile(const string& logfile)
 {
     closeLogfile();
     m_logfile = ::open(logfile.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0644);
@@ -93,8 +92,12 @@ void NativeProcess::closeLogfile()
 
 bool NativeProcess::run()
 {
-    const char* argv[MAX_ARGS] = { 0, };
-    const char* envp[MAX_ENVP] = { 0, };
+    const char* argv[MAX_ARGS] = {
+        0,
+    };
+    const char* envp[MAX_ENVP] = {
+        0,
+    };
     string params = "";
     int index = 0;
 
@@ -125,8 +128,7 @@ bool NativeProcess::run()
         -1,
         m_logfile,
         m_logfile,
-        &gerr
-    );
+        &gerr);
     if (gerr) {
         Logger::error(CLASS_NAME, __FUNCTION__, gerr->message);
         g_error_free(gerr);

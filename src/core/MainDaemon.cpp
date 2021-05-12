@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@
 
 #include "base/Handlers.h"
 #include "bus/session/SAM.h"
-#include "bus/host/SessionManager.h"
+#include "bus/host/Account.h"
 #include "core/IntentManager.h"
 #include "conf/ConfFile.h"
 #include "util/File.h"
@@ -52,7 +52,7 @@ void MainDaemon::initialize()
     try {
         ConfFile::getInstance().initialize(m_mainLoop);
         IntentManager::getInstance().initialize(m_mainLoop);
-        SessionManager::getInstance().initialize(m_mainLoop);
+        Account::getInstance().initialize(m_mainLoop);
     } catch(...) {
         Logger::info(getClassName(), __FUNCTION__, "Failed to initialize service");
     }
@@ -60,7 +60,7 @@ void MainDaemon::initialize()
 
 void MainDaemon::finalize()
 {
-    SessionManager::getInstance().finalize();
+    Account::getInstance().finalize();
     IntentManager::getInstance().finalize();
     ConfFile::getInstance().finalize();
 }

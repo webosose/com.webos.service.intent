@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@
 #define CONF_CONFFILE_H_
 
 #include <iostream>
-
 #include <pbnjson.hpp>
 
-#include "interface/ISingleton.h"
 #include "interface/IInitializable.h"
+#include "interface/ISingleton.h"
 
 using namespace std;
 using namespace pbnjson;

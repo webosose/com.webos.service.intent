@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 #include "SAM.h"
 
-#include "core/IntentManager.h"
-#include "core/MainDaemon.h"
 #include "base/Handler.h"
 #include "base/Handlers.h"
 #include "base/Intents.h"
 #include "conf/ConfFile.h"
+#include "core/IntentManager.h"
+#include "core/MainDaemon.h"
 #include "util/Logger.h"
 
 const string& SAM::CLASS_NAME = "SAM";
@@ -39,7 +39,7 @@ SAM::~SAM()
     if (m_listApps != 0) {
         try {
             LSCallCancel(IntentManager::getInstance().get(), m_listApps, nullptr);
-        } catch(LS::Error& err) {
+        } catch (LS::Error& err) {
             Logger::error(CLASS_NAME, __FUNCTION__, "Exception in LS2");
         }
         m_listApps = 0;
@@ -67,8 +67,7 @@ void SAM::onServerStatusChanged(bool isConnected)
                     onListApps,
                     this,
                     &m_listApps,
-                    &error
-            )) {
+                    &error)) {
                 Logger::error(CLASS_NAME, __FUNCTION__, error.message);
             }
         }
@@ -173,17 +172,16 @@ int SAM::launch(IntentPtr intent, HandlerPtr handler)
 #else
     if (!LSCallOneReply(
 #endif
-        IntentManager::getInstance().get(),
-        method.c_str(),
-        requestPayload.stringify().c_str(),
+            IntentManager::getInstance().get(),
+            method.c_str(),
+            requestPayload.stringify().c_str(),
 #if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
-        m_sessionId.c_str(),
+            m_sessionId.c_str(),
 #endif
-        onLaunch,
-        nullptr,
-        &token,
-        &error
-    )) {
+            onLaunch,
+            nullptr,
+            &token,
+            &error)) {
         Logger::error(CLASS_NAME, __FUNCTION__, error.message);
         return -1;
     }

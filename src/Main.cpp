@@ -14,18 +14,18 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+#include <gio/gio.h>
 #include <signal.h>
 #include <stdlib.h>
 
-#include <sstream>
 #include <fstream>
-#include <gio/gio.h>
+#include <sstream>
 
 #include "core/MainDaemon.h"
-#include "util/Logger.h"
 #include "util/File.h"
+#include "util/Logger.h"
 
-static const char* CLASS_NAME = "Main";
+static const char *CLASS_NAME = "Main";
 
 void signal_handler(int signal, siginfo_t *siginfo, void *context)
 {
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     try {
         MainDaemon::getInstance().initialize();
         MainDaemon::getInstance().start();
-    } catch(...) {
+    } catch (...) {
         Logger::info(CLASS_NAME, __FUNCTION__, "Exception in unknown position");
     }
     MainDaemon::getInstance().finalize();

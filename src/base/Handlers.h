@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
 
 #include "Handler.h"
 #include "interface/IClassName.h"
-#include "interface/ISingleton.h"
 #include "interface/ISerializable.h"
+#include "interface/ISingleton.h"
 
 using namespace std;
 
@@ -49,7 +49,6 @@ private:
     Handlers();
 
     map<string, HandlerPtr> m_handlers;
-
 };
 
 #endif /* BASE_HANDLERS_H_ */

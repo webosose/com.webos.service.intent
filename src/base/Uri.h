@@ -34,17 +34,17 @@ public:
 
     bool parse(const string& str);
 
-    string uri()      const { return m_uri; }
-    string scheme()   const { return m_scheme; }
-    string host()     const { return m_host; }
-    string path()     const { return m_path; }
-    string query()    const { return m_query; }
+    string uri() const { return m_uri; }
+    string scheme() const { return m_scheme; }
+    string host() const { return m_host; }
+    string path() const { return m_path; }
+    string query() const { return m_query; }
     string fragment() const { return m_fragment; }
 
     string toString() const { return m_uri; }
     bool toJson(JValue& json);
 
-    bool empty()      const { return m_empty; }
+    bool empty() const { return m_empty; }
 
 private:
     string m_uri;

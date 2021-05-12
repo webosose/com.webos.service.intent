@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@
 #ifndef INTERFACE_IINITIALIZABLE_H_
 #define INTERFACE_IINITIALIZABLE_H_
 
-#include <iostream>
 #include <glib.h>
+
+#include <iostream>
 
 #include "IClassName.h"
 #include "util/Logger.h"
@@ -27,7 +28,7 @@ using namespace std;
 
 class IInitializable : public IClassName {
 public:
-    virtual ~IInitializable() {};
+    virtual ~IInitializable(){};
 
     virtual bool initialize(GMainLoop* mainloop) final
     {
@@ -63,17 +64,13 @@ protected:
     IInitializable()
         : m_mainloop(nullptr),
           m_isInitalized(false),
-          m_isFinalized(false)
-    {
-    };
+          m_isFinalized(false){};
 
     GMainLoop* m_mainloop;
 
 private:
     bool m_isInitalized;
     bool m_isFinalized;
-
 };
-
 
 #endif /* INTERFACE_IINITIALIZABLE_H_ */

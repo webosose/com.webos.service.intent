@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@
 
 #include <lunaservice.h>
 
-#include "bus/session/SAM.h"
-#include "bus/host/SessionManager.h"
 #include "base/Handler.h"
 #include "base/Handlers.h"
 #include "base/Intent.h"
 #include "base/Intents.h"
+#include "bus/host/Account.h"
+#include "bus/session/SAM.h"
 #include "util/Logger.h"
 
-string IntentManager::getName(LS::Message& request)
+string IntentManager::getName(LS::Message &request)
 {
     string result;
     if (request.getApplicationID() != nullptr) {
@@ -45,30 +45,25 @@ IntentManager::IntentManager()
     setClassName("IntentManager");
 
     LS_CATEGORY_BEGIN(IntentManager, "/")
-        LS_CATEGORY_METHOD(query)
-        LS_CATEGORY_METHOD(start)
-        LS_CATEGORY_METHOD(sendResult)
-        LS_CATEGORY_METHOD(subscribeResult)
+    LS_CATEGORY_METHOD(query)
+    LS_CATEGORY_METHOD(start)
+    LS_CATEGORY_METHOD(sendResult)
+    LS_CATEGORY_METHOD(subscribeResult)
     LS_CATEGORY_END
 }
 
-IntentManager::~IntentManager()
-{
-}
+IntentManager::~IntentManager() {}
 
 bool IntentManager::onInitialization()
 {
     try {
         Handle::attachToLoop(m_mainloop);
-    } catch(exception& e) {
+    } catch (exception &e) {
     }
     return true;
 }
 
-bool IntentManager::onFinalization()
-{
-    return true;
-}
+bool IntentManager::onFinalization() { return true; }
 
 bool IntentManager::query(LSMessage &message)
 {
@@ -86,7 +81,8 @@ bool IntentManager::query(LSMessage &message)
         goto Done;
     }
 
-    Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
+    Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request,
+                          requestPayload);
     JValueUtil::getValue(requestPayload, "sessionId", sessionId);
     if (requestPayload.hasKey("intent")) {
         if (!intent->fromJson(requestPayload["intent"]) || !intent->isValid()) {
@@ -122,9 +118,10 @@ bool IntentManager::start(LSMessage &message)
     HandlerPtr handler = nullptr;
     IntentPtr intent = make_shared<Intent>();
 
-    Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
+    Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request,
+                          requestPayload);
     JValueUtil::getValue(requestPayload, "sessionId", sessionId);
-    SessionPtr session = SessionManager::getInstance().getSession(sessionId);
+    SessionPtr session = Account::getInstance().getSession(sessionId);
     if (session == nullptr) {
         errorText = "Cannot find session";
         goto Done;
@@ -154,7 +151,8 @@ bool IntentManager::start(LSMessage &message)
     if (!sessionId.empty())
         responsePayload.put("sessionId", sessionId);
     // server status should be monitored based on requester position not sessionId
-    subscribeStatus(intent->getOwner(), AbsLunaClient::getSessionId(request.get()));
+    subscribeStatus(intent->getOwner(),
+                    AbsLunaClient::getSessionId(request.get()));
 
     if (request.isSubscription()) {
         responsePayload.put("subscribed", true);
@@ -263,7 +261,8 @@ Done:
     return true;
 }
 
-void IntentManager::subscribeStatus(const string& name, const string& sessionId)
+void IntentManager::subscribeStatus(const string &name,
+                                    const string &sessionId)
 {
     JValue requestPayload = pbnjson::Object();
     requestPayload.put("serviceName", name);
@@ -273,15 +272,12 @@ void IntentManager::subscribeStatus(const string& name, const string& sessionId)
 
     LSCall(this->get(),
            "luna://com.webos.service.bus/signal/registerServerStatus",
-           requestPayload.stringify().c_str(),
-           _onServerStatusChanged,
-           nullptr,
-           nullptr,
-           nullptr
-    );
+           requestPayload.stringify().c_str(), _onServerStatusChanged, nullptr,
+           nullptr, nullptr);
 }
 
-bool IntentManager::_onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context)
+bool IntentManager::_onServerStatusChanged(LSHandle *sh, LSMessage *message,
+                                           void *context)
 {
     Message response(message);
     JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
@@ -289,7 +285,8 @@ bool IntentManager::_onServerStatusChanged(LSHandle* sh, LSMessage* message, voi
     if (subscriptionPayload.isNull())
         return true;
 
-    Logger::logSubscriptionResponse(getInstance().getClassName(), __FUNCTION__, response, subscriptionPayload);
+    Logger::logSubscriptionResponse(getInstance().getClassName(), __FUNCTION__,
+                                    response, subscriptionPayload);
 
     bool connected = false;
     string serviceName = "";

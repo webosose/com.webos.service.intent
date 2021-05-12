@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,13 +18,12 @@
 #define CORE_INTENTMANAGER_H_
 
 #include <iostream>
+#include <luna-service2/lunaservice.hpp>
+#include <pbnjson.hpp>
 #include <queue>
 
-#include <pbnjson.hpp>
-#include <luna-service2/lunaservice.hpp>
-
-#include "interface/ISingleton.h"
 #include "interface/IInitializable.h"
+#include "interface/ISingleton.h"
 
 using namespace std;
 using namespace LS;
@@ -34,14 +33,15 @@ class IntentManager : public Handle,
                       public ISingleton<IntentManager>,
                       public IInitializable {
 friend class ISingleton<IntentManager>;
+
 public:
     virtual ~IntentManager();
 
     // APIs
-    bool query(LSMessage &message);
-    bool start(LSMessage &message);
-    bool sendResult(LSMessage &message);
-    bool subscribeResult(LSMessage &message);
+    bool query(LSMessage& message);
+    bool start(LSMessage& message);
+    bool sendResult(LSMessage& message);
+    bool subscribeResult(LSMessage& message);
 
     void subscribeStatus(const string& name, const string& sessionId);
 
@@ -55,7 +55,6 @@ private:
     static string getName(LS::Message& request);
 
     IntentManager();
-
 };
 
 #endif /* CORE_INTENTMANAGER_H_ */

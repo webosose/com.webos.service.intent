@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,13 +18,12 @@
 #define BASE_INTENT_H_
 
 #include <iostream>
-
 #include <luna-service2++/message.hpp>
 #include <luna-service2++/subscription.hpp>
 
 #include "base/Uri.h"
-#include "interface/ISerializable.h"
 #include "interface/IClassName.h"
+#include "interface/ISerializable.h"
 
 using namespace std;
 
@@ -125,7 +124,7 @@ public:
         return m_owner;
     }
 
-    void addSubscriber(LS::Message &request)
+    void addSubscriber(LS::Message& request)
     {
         m_subscriptionPoint.subscribe(request);
     }

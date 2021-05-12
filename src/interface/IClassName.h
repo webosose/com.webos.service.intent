@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ using namespace std;
 
 class IClassName {
 public:
-    IClassName() : m_name("Unknown") {};
-    virtual ~IClassName() {};
+    IClassName() : m_name("Unknown"){};
+    virtual ~IClassName(){};
 
     string& getClassName()
     {
@@ -38,7 +38,6 @@ public:
 
 private:
     string m_name;
-
 };
 
 #endif /* INTERFACE_ICLASSNAME_H_ */

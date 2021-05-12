@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ void Intents::removeById(int intentId)
 
 void Intents::removeByOwner(const string& owner)
 {
-    for (auto it = m_intents.cbegin(); it != m_intents.cend() ;) {
+    for (auto it = m_intents.cbegin(); it != m_intents.cend();) {
         if (it->second->getOwner() == owner) {
             onRemove(it->second);
             it = m_intents.erase(it);
@@ -64,7 +64,7 @@ IntentPtr Intents::getById(int intentId)
 
 IntentPtr Intents::getByToken(int token)
 {
-    for (auto it = m_intents.begin(); it != m_intents.end() ; ++it) {
+    for (auto it = m_intents.begin(); it != m_intents.end(); ++it) {
         if (it->second->getToken() == token) {
             return it->second;
         }

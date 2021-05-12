@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@
 #define BUS_SESSION_SAM_H_
 
 #include <iostream>
+#include <luna-service2/lunaservice.hpp>
 #include <map>
 
-#include <luna-service2/lunaservice.hpp>
-
-#include "bus/AbsLunaClient.h"
 #include "base/Handler.h"
-#include "interface/ISingleton.h"
+#include "bus/AbsLunaClient.h"
 #include "interface/IInitializable.h"
+#include "interface/ISingleton.h"
 
 using namespace std;
 
@@ -48,7 +47,6 @@ private:
     static const string& CLASS_NAME;
 
     LSMessageToken m_listApps;
-
 };
 
 #endif /* BUS_SESSION_SAM_H_ */

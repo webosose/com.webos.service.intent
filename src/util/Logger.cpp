@@ -17,7 +17,6 @@
 #include "Logger.h"
 
 #include <PmLogLib.h>
-
 #include <string.h>
 
 const string Logger::EMPTY = "";
@@ -147,18 +146,18 @@ const string& Logger::toString(const enum LogLevel& level)
     static const string WARNING = "W";
     static const string ERROR = "E";
 
-    switch(level) {
-    case LogLevel_DEBUG:
-        return DEBUG;
+    switch (level) {
+        case LogLevel_DEBUG:
+            return DEBUG;
 
-    case LogLevel_INFO:
-        return INFO;
+        case LogLevel_INFO:
+            return INFO;
 
-    case LogLevel_WARNING:
-        return WARNING;
+        case LogLevel_WARNING:
+            return WARNING;
 
-    case LogLevel_ERROR:
-       return ERROR;
+        case LogLevel_ERROR:
+            return ERROR;
     }
     return DEBUG;
 }
@@ -190,17 +189,17 @@ void Logger::write(const enum LogLevel& level, const string& className, const st
         return;
 
     switch (m_type) {
-    case LogType_CONSOLE:
-        writeConsole(level, className, functionName, who, what, detail);
-        break;
+        case LogType_CONSOLE:
+            writeConsole(level, className, functionName, who, what, detail);
+            break;
 
-    case LogType_PMLOG:
-        writePmlog(level, className, functionName, who, what, detail);
-        break;
+        case LogType_PMLOG:
+            writePmlog(level, className, functionName, who, what, detail);
+            break;
 
-    default:
-        cerr << "Unsupported Log Type" << endl;
-        break;
+        default:
+            cerr << "Unsupported Log Type" << endl;
+            break;
     }
 }
 
@@ -226,51 +225,51 @@ void Logger::writePmlog(const enum LogLevel& level, const string& className, con
     }
 
     // TODO handle empty who
-    switch(level) {
-    case LogLevel_DEBUG:
-        PmLogDebug(context, detail.c_str());
-        break;
+    switch (level) {
+        case LogLevel_DEBUG:
+            PmLogDebug(context, detail.c_str());
+            break;
 
-    case LogLevel_INFO:
-        if (detail.empty()) {
-            PmLogInfo(context, className.c_str(), 3,
-                      PMLOGKS("function", functionName.c_str()),
-                      PMLOGKS("who", who.c_str()),
-                      PMLOGKS("what", what.c_str()), "");
-        } else {
-            PmLogInfo(context, className.c_str(), 3,
-                      PMLOGKS("function", functionName.c_str()),
-                      PMLOGKS("who", who.c_str()),
-                      PMLOGKS("what", what.c_str()), "%s", detail.c_str());
-        }
-        break;
+        case LogLevel_INFO:
+            if (detail.empty()) {
+                PmLogInfo(context, className.c_str(), 3,
+                          PMLOGKS("function", functionName.c_str()),
+                          PMLOGKS("who", who.c_str()),
+                          PMLOGKS("what", what.c_str()), "");
+            } else {
+                PmLogInfo(context, className.c_str(), 3,
+                          PMLOGKS("function", functionName.c_str()),
+                          PMLOGKS("who", who.c_str()),
+                          PMLOGKS("what", what.c_str()), "%s", detail.c_str());
+            }
+            break;
 
-    case LogLevel_WARNING:
-        if (detail.empty()) {
-            PmLogWarning(context, className.c_str(), 3,
-                         PMLOGKS("function", functionName.c_str()),
-                         PMLOGKS("who", who.c_str()),
-                         PMLOGKS("what", what.c_str()), "");
-        } else {
-            PmLogWarning(context, className.c_str(), 3,
-                         PMLOGKS("function", functionName.c_str()),
-                         PMLOGKS("who", who.c_str()),
-                         PMLOGKS("what", what.c_str()), "%s", detail.c_str());
-        }
-        break;
+        case LogLevel_WARNING:
+            if (detail.empty()) {
+                PmLogWarning(context, className.c_str(), 3,
+                             PMLOGKS("function", functionName.c_str()),
+                             PMLOGKS("who", who.c_str()),
+                             PMLOGKS("what", what.c_str()), "");
+            } else {
+                PmLogWarning(context, className.c_str(), 3,
+                             PMLOGKS("function", functionName.c_str()),
+                             PMLOGKS("who", who.c_str()),
+                             PMLOGKS("what", what.c_str()), "%s", detail.c_str());
+            }
+            break;
 
-    case LogLevel_ERROR:
-        if (detail.empty()) {
-            PmLogError(context, className.c_str(), 3,
-                       PMLOGKS("function", functionName.c_str()),
-                       PMLOGKS("who", who.c_str()),
-                       PMLOGKS("what", what.c_str()), "");
-        } else {
-            PmLogError(context, className.c_str(), 3,
-                       PMLOGKS("function", functionName.c_str()),
-                       PMLOGKS("who", who.c_str()),
-                       PMLOGKS("what", what.c_str()), "%s", detail.c_str());
-        }
-        break;
+        case LogLevel_ERROR:
+            if (detail.empty()) {
+                PmLogError(context, className.c_str(), 3,
+                           PMLOGKS("function", functionName.c_str()),
+                           PMLOGKS("who", who.c_str()),
+                           PMLOGKS("what", what.c_str()), "");
+            } else {
+                PmLogError(context, className.c_str(), 3,
+                           PMLOGKS("function", functionName.c_str()),
+                           PMLOGKS("who", who.c_str()),
+                           PMLOGKS("what", what.c_str()), "%s", detail.c_str());
+            }
+            break;
     }
 }

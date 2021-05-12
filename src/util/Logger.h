@@ -18,9 +18,8 @@
 #define UTIL_LOGGER_H_
 
 #include <iostream>
-#include <map>
-
 #include <luna-service2/lunaservice.hpp>
+#include <map>
 #include <pbnjson.hpp>
 
 using namespace std;
@@ -54,11 +53,11 @@ enum LogType {
 
 class Logger {
 public:
-    template<typename ... Args>
-    static const string format(const string& format, Args ... args)
+    template <typename... Args>
+    static const string format(const string& format, Args... args)
     {
         static char buffer[1024];
-        snprintf(buffer, 1024, format.c_str(), args ... );
+        snprintf(buffer, 1024, format.c_str(), args...);
         return string(buffer);
     }
 

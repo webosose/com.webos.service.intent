@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,8 @@
 #define BUS_HOST_SESSIONMANAGER_H_
 
 #include <iostream>
-#include <map>
-
 #include <luna-service2/lunaservice.hpp>
+#include <map>
 
 #include "bus/AbsLunaClient.h"
 #include "bus/session/Session.h"
@@ -28,11 +27,11 @@
 
 using namespace std;
 
-class SessionManager : public AbsLunaClient,
-                       public ISingleton<SessionManager> {
-friend class ISingleton<SessionManager>;
+class Account : public AbsLunaClient,
+                public ISingleton<Account> {
+friend class ISingleton<Account>;
 public:
-    virtual ~SessionManager();
+    virtual ~Account();
 
     SessionPtr getSession(const string& sessionId)
     {
@@ -50,7 +49,7 @@ protected:
 private:
     static bool onGetSessionList(LSHandle* sh, LSMessage* reply, void* ctx);
 
-    SessionManager();
+    Account();
 
     Call m_getSessionList;
 

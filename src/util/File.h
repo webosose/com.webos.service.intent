@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 #ifndef UTIL_FILE_H_
 #define UTIL_FILE_H_
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 using namespace std;
 
@@ -38,7 +39,7 @@ public:
 
     static string join(const string& a, const string& b);
 
-    static void trimPath(string &path)
+    static void trimPath(string& path)
     {
         if (path.back() == '/')
             path.erase(prev(path.end()));
@@ -46,7 +47,6 @@ public:
 
     File();
     virtual ~File();
-
 };
 
 #endif /* UTIL_FILE_H_ */

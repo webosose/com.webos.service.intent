@@ -17,8 +17,8 @@
 #ifndef BASE_HANDLER_H_
 #define BASE_HANDLER_H_
 
-#include <iostream>
 #include <deque>
+#include <iostream>
 
 #include "base/Intent.h"
 #include "base/Uri.h"

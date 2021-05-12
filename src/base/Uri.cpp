@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ Uri::Uri()
       m_fragment(""),
       m_empty(true)
 {
-
 }
 
 Uri::Uri(const string& str)
@@ -63,22 +62,32 @@ bool Uri::parse(const string& str)
     std::smatch result;
     if (std::regex_match(m_uri, result, URL)) {
         unsigned counter = 0;
-        for (const auto &res : result) {
+        for (const auto& res : result) {
             switch (counter) {
-            case 2: m_scheme = res;   break;
-            case 4: m_host = res;     break;
-            case 5: m_path = res;     break;
-            case 7: m_query = res;    break;
-            case 9: m_fragment = res; break;
-            default:
-                break;
+                case 2:
+                    m_scheme = res;
+                    break;
+                case 4:
+                    m_host = res;
+                    break;
+                case 5:
+                    m_path = res;
+                    break;
+                case 7:
+                    m_query = res;
+                    break;
+                case 9:
+                    m_fragment = res;
+                    break;
+                default:
+                    break;
             }
             counter++;
         }
         // For debugging purpose.
         printf("[Source] %s\n", str.c_str());
         printf("[Parsed] scheme(%s) host(%s) path(%s) query(%s) fragment(%s)\n",
-            m_scheme.c_str(), m_host.c_str(), m_path.c_str(), m_query.c_str(), m_fragment.c_str());
+               m_scheme.c_str(), m_host.c_str(), m_path.c_str(), m_query.c_str(), m_fragment.c_str());
 
         // TODO should check dependency path --> host --> scheme
         m_empty = false;

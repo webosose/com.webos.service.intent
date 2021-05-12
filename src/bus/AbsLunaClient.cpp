@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ AbsLunaClient::~AbsLunaClient()
     if (m_statusCall != 0) {
         try {
             LSCallCancel(IntentManager::getInstance().get(), m_statusCall, nullptr);
-        } catch(LS::Error& err) {
+        } catch (LS::Error& err) {
             Logger::error(getClassName(), __FUNCTION__, "Exception in LS2");
         }
         m_statusCall = 0;
@@ -87,8 +87,7 @@ bool AbsLunaClient::onInitialization()
             _onServerStatusChanged,
             this,
             &m_statusCall,
-            &error
-    )) {
+            &error)) {
         Logger::error(getClassName(), __FUNCTION__, error.message);
         return false;
     }

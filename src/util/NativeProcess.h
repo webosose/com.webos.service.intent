@@ -17,10 +17,11 @@
 #ifndef UTIL_NATIVEPROCESS_H_
 #define UTIL_NATIVEPROCESS_H_
 
-#include <iostream>
-#include <vector>
-#include <map>
 #include <glib.h>
+
+#include <iostream>
+#include <map>
+#include <vector>
 
 using namespace std;
 
@@ -92,7 +93,6 @@ private:
     gint m_logfile;
 
     bool m_isTracked;
-
 };
 
 #endif /* UTIL_NATIVEPROCESS_H_ */

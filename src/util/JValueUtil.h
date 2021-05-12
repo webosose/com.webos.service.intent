@@ -47,7 +47,6 @@ public:
     static bool getValue(const JValue& json, const string& key, bool& value);
 
     static bool hasKey(const JValue& json, const string& firstKey, const string& secondKey = "", const string& thirdKey = "");
-
 };
 
 #endif /* UTIL_JVALUEUTIL_H_ */

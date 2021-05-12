@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ bool Handlers::remove(const string& key)
 
 bool Handlers::removeBySessionId(const string& sessionId)
 {
-    for (auto it = m_handlers.cbegin(); it != m_handlers.cend() ;) {
+    for (auto it = m_handlers.cbegin(); it != m_handlers.cend();) {
         if (it->second->getSessionId() == sessionId) {
             it = m_handlers.erase(it);
         } else {

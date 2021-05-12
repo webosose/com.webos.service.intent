@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 #ifndef BUS_ABSLUNACLIENT_H_
 #define BUS_ABSLUNACLIENT_H_
 
-#include <iostream>
 #include <boost/signals2.hpp>
+#include <iostream>
 #include <luna-service2/lunaservice.hpp>
 #include <pbnjson.hpp>
 
@@ -31,8 +31,9 @@ using namespace std;
 using namespace LS;
 using namespace pbnjson;
 
-class LSErrorSafe: public LSError {
-public:
+class LSErrorSafe : public LSError
+{
+   public:
     LSErrorSafe()
     {
         LSErrorInit(this);
@@ -44,7 +45,7 @@ public:
     }
 };
 
-class AbsLunaClient : public IInitializable{
+class AbsLunaClient : public IInitializable {
 public:
     static const string getSessionId(LSMessage* message)
     {
@@ -100,7 +101,6 @@ private:
     static bool _onServerStatusChanged(LSHandle* sh, LSMessage* message, void* context);
 
     LSMessageToken m_statusCall;
-
 };
 
 #endif /* BUS_ABSLUNACLIENT_H_ */

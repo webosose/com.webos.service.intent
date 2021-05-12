@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 #include "File.h"
 
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 string File::readFile(const string& file_name)
@@ -34,7 +34,7 @@ string File::readFile(const string& file_name)
     return file_contents;
 }
 
-bool File::writeFile(const string &path, const string& buffer)
+bool File::writeFile(const string& path, const string& buffer)
 {
     ofstream file(path.c_str());
     if (file.is_open()) {
@@ -111,15 +111,13 @@ string File::join(const string& a, const string& b)
     if (a.back() == '/') {
         if (b.front() == '/') {
             path = a + b.substr(1);
-        }
-        else {
+        } else {
             path = a + b;
         }
     } else {
         if (b.front() == '/') {
             path = a + b;
-        }
-        else {
+        } else {
             path = a + "/" + b;
         }
     }
