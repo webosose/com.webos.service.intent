@@ -2,6 +2,6 @@
     "com.webos.service.intent": [
         "application.launcher",
         "application.operation",
-        "session.management"
+        "account.query"
     ]
 }

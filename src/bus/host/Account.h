@@ -14,8 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BUS_HOST_SESSIONMANAGER_H_
-#define BUS_HOST_SESSIONMANAGER_H_
+#ifndef BUS_HOST_ACCOUNT_H_
+#define BUS_HOST_ACCOUNT_H_
 
 #include <iostream>
 #include <luna-service2/lunaservice.hpp>
@@ -47,13 +47,13 @@ protected:
     virtual void onServerStatusChanged(bool isConnected) override;
 
 private:
-    static bool onGetSessionList(LSHandle* sh, LSMessage* reply, void* ctx);
+    static bool onGetSessions(LSHandle* sh, LSMessage* reply, void* ctx);
 
     Account();
 
-    Call m_getSessionList;
+    Call m_getSessions;
 
     map<string, SessionPtr> m_sessions;
 };
 
-#endif /* BUS_HOST_SESSIONMANAGER_H_ */
+#endif /* BUS_HOST_ACCOUNT_H_ */

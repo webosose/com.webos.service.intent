@@ -63,7 +63,10 @@ bool IntentManager::onInitialization()
     return true;
 }
 
-bool IntentManager::onFinalization() { return true; }
+bool IntentManager::onFinalization()
+{
+    return true;
+}
 
 bool IntentManager::query(LSMessage &message)
 {
@@ -118,8 +121,7 @@ bool IntentManager::start(LSMessage &message)
     HandlerPtr handler = nullptr;
     IntentPtr intent = make_shared<Intent>();
 
-    Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request,
-                          requestPayload);
+    Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
     JValueUtil::getValue(requestPayload, "sessionId", sessionId);
     SessionPtr session = Account::getInstance().getSession(sessionId);
     if (session == nullptr) {
@@ -137,7 +139,6 @@ bool IntentManager::start(LSMessage &message)
         errorText = "Cannot find handler";
         goto Done;
     }
-
     // TODO, currently, we don't care about services
     // In the future, native service should be called
     if (session->getSAM().launch(intent, handler) == -1) {

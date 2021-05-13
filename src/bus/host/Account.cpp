@@ -19,14 +19,14 @@
 #include "bus/session/SAM.h"
 
 Account::Account()
-    : AbsLunaClient("com.webos.service.sessionmanager")
+    : AbsLunaClient("com.webos.service.account")
 {
     setClassName("Account");
 }
 
 Account::~Account()
 {
-    m_getSessionList.cancel();
+    m_getSessions.cancel();
 }
 
 bool Account::onInitialization()
@@ -48,62 +48,53 @@ bool Account::onFinalization()
 
 void Account::onServerStatusChanged(bool isConnected)
 {
-    static string method = string("luna://") + m_name + string("/getSessionList");
+    static const string METHOD = string("luna://") + m_name + string("/getSessions");
 
-    m_getSessionList.cancel();
+    m_getSessions.cancel();
     m_sessions.clear();
     if (isConnected) {
-        m_getSessionList = IntentManager::getInstance().callMultiReply(
-            method.c_str(),
+        m_getSessions = IntentManager::getInstance().callMultiReply(
+            METHOD.c_str(),
             AbsLunaClient::getSubscriptionPayload().stringify().c_str(),
-            onGetSessionList, this);
+            onGetSessions,
+            this
+        );
     }
 }
 
-bool Account::onGetSessionList(LSHandle *sh, LSMessage *reply, void *ctx)
+bool Account::onGetSessions(LSHandle *sh, LSMessage *reply, void *ctx)
 {
     Message response(reply);
     JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
     bool returnValue = false;
 
-    JValueUtil::getValue(subscriptionPayload, "returnValue", returnValue);
+    if (!JValueUtil::getValue(subscriptionPayload, "returnValue", returnValue) || !returnValue) {
+        Logger::error(getInstance().getClassName(), __FUNCTION__, std::string(response.getPayload()));
+        return true;
+    }
     // Logger::logSubscriptionResponse(getInstance().getClassName(), __FUNCTION__,
     // response, subscriptionPayload);
 
-    if (response.isHubError() || !returnValue) {
-        Logger::error(getInstance().getClassName(), __FUNCTION__,
-                      std::string(response.getPayload()));
-        return true;
-    }
-
-    JValue sessionList;
-    if (!JValueUtil::getValue(subscriptionPayload, "sessionList", sessionList) ||
-        !sessionList.isArray()) {
-        Logger::error(getInstance().getClassName(), __FUNCTION__,
-                      "Failed to get 'sessionList' in subscriptionPayload");
+    JValue sessions;
+    if (!JValueUtil::getValue(subscriptionPayload, "sessions", sessions) || !sessions.isArray()) {
+        Logger::error(getInstance().getClassName(), __FUNCTION__, "Failed to get 'sessions' in subscriptionPayload");
         return true;
     }
 
     // mark as removed
-    for (auto it = getInstance().m_sessions.begin();
-         it != getInstance().m_sessions.end(); ++it) {
+    for (auto it = getInstance().m_sessions.begin(); it != getInstance().m_sessions.end(); ++it) {
         it->second->setRunning(false);
     }
 
     // update current status
-    for (JValue session : sessionList.items()) {
-        string sessionId = "";
-
+    string sessionId = "";
+    for (JValue session : sessions.items()) {
         if (!JValueUtil::getValue(session, "sessionId", sessionId)) {
-            Logger::warning(getInstance().getClassName(), __FUNCTION__,
-                            "'sessionId' is empty");
+            Logger::warning(getInstance().getClassName(), __FUNCTION__, "'sessionId' is empty");
             continue;
         }
-
-        if (getInstance().m_sessions.find(sessionId) ==
-            getInstance().m_sessions.end()) {
-            getInstance().m_sessions[sessionId] =
-                make_shared<Session>(sessionId, getInstance().m_mainloop);
+        if (getInstance().m_sessions.find(sessionId) == getInstance().m_sessions.end()) {
+            getInstance().m_sessions[sessionId] = make_shared<Session>(sessionId, getInstance().m_mainloop);
         }
         getInstance().m_sessions[sessionId]->setRunning(true);
     }
