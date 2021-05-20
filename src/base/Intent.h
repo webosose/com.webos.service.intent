@@ -110,7 +110,7 @@ public:
     {
         m_token = token;
     }
-    const int getToken()
+    const int& getToken()
     {
         return m_token;
     }
