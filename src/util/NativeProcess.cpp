@@ -99,12 +99,12 @@ bool NativeProcess::run()
         0,
     };
     string params = "";
-    int index = 0;
+    long long index = 0;
 
     GError* gerr = NULL;
     argv[0] = m_command.c_str();
     index = 1;
-    for (auto it = m_arguments.begin(); it != m_arguments.end()-1; ++it) {
+    for (auto it = m_arguments.begin(); it != m_arguments.end(); ++it) {
         params += *it + " ";
         argv[index++] = it->c_str();
     }
@@ -112,7 +112,7 @@ bool NativeProcess::run()
     vector<string> finalEnvironments;
     convertEnvToStr(m_environments, finalEnvironments);
     index = 0;
-    for (auto it = finalEnvironments.begin(); it != finalEnvironments.end()-1; ++it) {
+    for (auto it = finalEnvironments.begin(); it != finalEnvironments.end(); ++it) {
         envp[index++] = (const char*)it->c_str();
     }
 
