@@ -99,7 +99,7 @@ bool NativeProcess::run()
         0,
     };
     string params = "";
-    int index = 0;
+    long long index = 0;
 
     GError* gerr = NULL;
     argv[0] = m_command.c_str();
