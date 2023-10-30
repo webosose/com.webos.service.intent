@@ -99,14 +99,17 @@ bool NativeProcess::run()
         0,
     };
     string params = "";
-    long long index = 0;
+    int index = 1; // start from 1 because argv[0] is command
 
     GError* gerr = NULL;
     argv[0] = m_command.c_str();
-    index = 1;
     for (auto it = m_arguments.begin(); it != m_arguments.end(); ++it) {
         params += *it + " ";
         argv[index++] = it->c_str();
+        if (index >= MAX_ARGS) {
+            Logger::error(CLASS_NAME, __FUNCTION__, "Too many arguments");
+            return false;
+        }
     }
 
     vector<string> finalEnvironments;
@@ -114,6 +117,10 @@ bool NativeProcess::run()
     index = 0;
     for (auto it = finalEnvironments.begin(); it != finalEnvironments.end(); ++it) {
         envp[index++] = (const char*)it->c_str();
+        if (index >= MAX_ENVP) {
+            Logger::error(CLASS_NAME, __FUNCTION__, "Too many environments");
+            return false;
+        }
     }
 
     Logger::info(CLASS_NAME, __FUNCTION__, m_command, params);
