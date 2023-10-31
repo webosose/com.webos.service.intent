@@ -16,7 +16,7 @@
 
 #include "IntentManager.h"
 
-#include <lunaservice.h>
+#include <luna-service2/lunaservice.h>
 
 #include "base/Handler.h"
 #include "base/Handlers.h"
