@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 LG Electronics, Inc.
+// Copyright (c) 2020-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ Account::~Account()
 
 bool Account::onInitialization()
 {
-#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+#if defined(ENABLE_SESSION)
     return AbsLunaClient::onInitialization();
 #else
     // Create empty session
