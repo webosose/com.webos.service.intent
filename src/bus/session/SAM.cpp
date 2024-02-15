@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 LG Electronics, Inc.
+// Copyright (c) 2020-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ void SAM::onServerStatusChanged(bool isConnected)
     if (isConnected) {
         if (m_listApps == 0) {
             LSErrorSafe error;
-#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+#if defined(ENABLE_SESSION)
             if (!LSCallSession(
 #else
             if (!LSCall(
@@ -61,7 +61,7 @@ void SAM::onServerStatusChanged(bool isConnected)
                     IntentManager::getInstance().get(),
                     method.c_str(),
                     AbsLunaClient::getSubscriptionPayload().stringify().c_str(),
-#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+#if defined(ENABLE_SESSION)
                     m_sessionId.c_str(),
 #endif
                     onListApps,
@@ -167,7 +167,7 @@ int SAM::launch(IntentPtr intent, HandlerPtr handler)
     LSMessageToken token = 0;
     Logger::logCallRequest(getClassName(), __FUNCTION__, method, requestPayload);
 
-#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+#if defined(ENABLE_SESSION)
     if (!LSCallSessionOneReply(
 #else
     if (!LSCallOneReply(
@@ -175,7 +175,7 @@ int SAM::launch(IntentPtr intent, HandlerPtr handler)
             IntentManager::getInstance().get(),
             method.c_str(),
             requestPayload.stringify().c_str(),
-#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+#if defined(ENABLE_SESSION)
             m_sessionId.c_str(),
 #endif
             onLaunch,
