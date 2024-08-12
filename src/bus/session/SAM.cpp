@@ -115,7 +115,7 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* reply, void* ctx)
             handler->setName(id);
             handler->setSessionId(sessionId);
             handler->setIntentFilters(intentFilters);
-            Handlers::getInstance().add(handler);
+            Handlers::getInstance().add(std::move(handler));
         } else if (change == "removed") {
             Handlers::getInstance().remove(Handler::convertKey(sessionId, id));
         } else {
@@ -144,7 +144,7 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* reply, void* ctx)
         handler->setName(id);
         handler->setSessionId(sessionId);
         handler->setIntentFilters(intentFilters);
-        Handlers::getInstance().add(handler);
+        Handlers::getInstance().add(std::move(handler));
     }
 
     return true;

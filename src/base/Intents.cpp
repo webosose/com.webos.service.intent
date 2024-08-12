@@ -30,7 +30,7 @@ Intents::~Intents()
 void Intents::add(IntentPtr intent)
 {
     m_intents[intent->getIntentId()] = intent;
-    onAdd(intent);
+    onAdd(std::move(intent));
 }
 
 void Intents::removeById(int intentId)
@@ -38,7 +38,7 @@ void Intents::removeById(int intentId)
     IntentPtr intent = getById(intentId);
     if (intent == nullptr)
         return;
-    onRemove(intent);
+    onRemove(std::move(intent));
     m_intents.erase(intentId);
 }
 
@@ -74,10 +74,10 @@ IntentPtr Intents::getByToken(int token)
 
 void Intents::onRemove(IntentPtr intent)
 {
-    Logger::info(getClassName(), __FUNCTION__, toString(intent), "Removed");
+    Logger::info(getClassName(), __FUNCTION__, toString(std::move(intent)), "Removed");
 }
 
 void Intents::onAdd(IntentPtr intent)
 {
-    Logger::info(getClassName(), __FUNCTION__, toString(intent), "Added");
+    Logger::info(getClassName(), __FUNCTION__, toString(std::move(intent)), "Added");
 }
