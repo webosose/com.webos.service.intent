@@ -46,7 +46,7 @@ public:
 
     void setName(string name)
     {
-        m_name = name;
+        m_name = std::move(name);
     }
     const string& getName() const
     {

@@ -93,7 +93,7 @@ bool IntentManager::query(LSMessage &message)
             goto Done;
         }
         intent->setSessionId(sessionId);
-        Handlers::getInstance().toJson(handlers, intent);
+        Handlers::getInstance().toJson(handlers, std::move(intent));
     } else {
         Handlers::getInstance().toJson(handlers, sessionId);
     }
@@ -117,13 +117,13 @@ bool IntentManager::start(LSMessage &message)
     JValue responsePayload = pbnjson::Object();
     string sessionId = AbsLunaClient::getSessionId(request.get());
     string errorText = "";
-
     HandlerPtr handler = nullptr;
-    IntentPtr intent = make_shared<Intent>();
 
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
     JValueUtil::getValue(requestPayload, "sessionId", sessionId);
     SessionPtr session = Account::getInstance().getSession(sessionId);
+
+    IntentPtr intent = make_shared<Intent>();
     if (session == nullptr) {
         errorText = "Cannot find session";
         goto Done;
@@ -141,7 +141,7 @@ bool IntentManager::start(LSMessage &message)
     }
     // TODO, currently, we don't care about services
     // In the future, native service should be called
-    if (session->getSAM().launch(intent, handler) == -1) {
+    if (session->getSAM().launch(intent, std::move(handler)) == -1) {
         errorText = "Failed to start intent";
         goto Done;
     }
@@ -159,7 +159,7 @@ bool IntentManager::start(LSMessage &message)
         responsePayload.put("subscribed", true);
         intent->addSubscriber(request);
     }
-    Intents::getInstance().add(intent);
+    Intents::getInstance().add(std::move(intent));
 
 Done:
     if (!errorText.empty()) {
